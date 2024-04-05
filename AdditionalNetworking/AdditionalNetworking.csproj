@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"/>
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProjectGuid>{C385B338-068C-4761-8672-30027515A9FA}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>AdditionalNetworking</RootNamespace>
+        <AssemblyName>AdditionalNetworking</AssemblyName>
+        <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+        <LangVersion>8</LangVersion>
+        <Nullable>warnings</Nullable>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <ExcludeGeneratedDebugSymbol>False</ExcludeGeneratedDebugSymbol>
+    </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="src\AdditionalNetworking.cs" />
+        <Compile Include="src\Components\PlayerNetworking.cs" />
+        <Compile Include="src\Components\RadarNetworking.cs" />
+        <Compile Include="src\Components\ShotgunNetworking.cs" />
+        <Compile Include="src\Dependency\AsyncLoggerProxy.cs" />
+        <Compile Include="src\Dependency\LobbyCompatibilityChecker.cs" />
+        <Compile Include="src\Patches\DebugPatches.cs" />
+        <Compile Include="src\Patches\PlayerControllerBPatch.cs" />
+        <Compile Include="src\Patches\ShotgunItemPatch.cs" />
+        <Compile Include="src\Properties\AssemblyInfo.cs" />
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="GameDirectory.targets"/>
+        <Content Include="GameDirectory.targets.example" />
+        <Content Include="Output\.gitignore" />
+        <Content Include="Output\Experimental\clipboard.txt" />
+        <Content Include="Output\Experimental\AdditionalNetworking-2.3.4.0.zip" />
+        <Content Include="PostBuildEvents.targets"/>
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="System.Runtime" Version="4.3.1" />
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="TeamBMX.LobbyCompatibility" Version="1.0.1" />
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
+    <Import Project="PostBuildEvents.targets"/>
+
+</Project>

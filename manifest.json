@@ -1,0 +1,9 @@
+{
+  "name": "AdditionalNetworking",
+  "version_number": "2.3.5",
+  "website_url": "https://github.com/mattymatty97/LTC_AdditionalNetworking",
+  "description": "A collection of Patches for Lethal Company with Quality of life changes for the Host.",
+  "dependencies": [
+    "BepInEx-BepInExPack-5.4.2100"
+  ]
+}
