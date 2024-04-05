@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using GameNetcodeStuff;
 using Unity.Netcode;
@@ -41,11 +40,13 @@ namespace AdditionalNetworking.Components
                 if (networkObjectReference.TryGet(out var networkObject) && networkObject.TryGetComponent<GrabbableObject>(out var grabbableObject))
                 {
                     missingObjects.Remove(grabbableObject);
-                    _controllerB.ItemSlots[index] = grabbableObject;
+                    if (!IsOwner)
+                        _controllerB.ItemSlots[index] = grabbableObject;
                 }
                 else
                 {
-                    _controllerB.ItemSlots[index] = null;
+                    if (!IsOwner)
+                        _controllerB.ItemSlots[index] = null;
                 }
 
                 index++;
@@ -78,6 +79,9 @@ namespace AdditionalNetworking.Components
         [ClientRpc]
         private void syncSelectedSlotClientRpc(int selectedSlot)
         {
+            if (IsOwner)
+                return;
+            
             if (_controllerB.currentItemSlot != selectedSlot)
                 _controllerB.SwitchToItemSlot(_controllerB.currentItemSlot);
         }
@@ -91,6 +95,8 @@ namespace AdditionalNetworking.Components
         [ClientRpc]
         public void syncUsernameClientRpc(string username, ClientRpcParams clientRpcParams = default)
         {
+            if (IsOwner)
+                return;
             _controllerB.playerUsername = username;
             _controllerB.usernameBillboardText.text = username;
         }
