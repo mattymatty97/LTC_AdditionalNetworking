@@ -22,7 +22,7 @@ namespace AdditionalNetworking.Components
         }
 
         [ServerRpc(RequireOwnership = false)]
-        public void requestSyncServerRcp(ServerRpcParams serverRpcParams = default)
+        public void requestSyncServerRpc(ServerRpcParams serverRpcParams = default)
         {
             ClientRpcParams clientRpcParams = new ClientRpcParams
             {

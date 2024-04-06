@@ -8,7 +8,6 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using GameNetcodeStuff;
 using HarmonyLib;
-using RuntimeNetcodeRPCValidator;
 
 namespace AdditionalNetworking
 {
@@ -37,7 +36,7 @@ namespace AdditionalNetworking
 				PluginConfig.Init(this);
 				
 				Log.LogInfo("Adding Netcode");
-				var netcodeValidator = new NetcodeValidator(GUID);
+				var netcodeValidator = new RuntimeNetcodeRPCValidator.NetcodeValidator(GUID);
 				netcodeValidator.PatchAll();
 				
 				netcodeValidator.BindToPreExistingObjectByBehaviour<PlayerNetworking, PlayerControllerB>();

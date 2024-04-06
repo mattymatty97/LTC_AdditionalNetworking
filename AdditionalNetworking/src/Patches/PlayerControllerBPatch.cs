@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using AdditionalNetworking.Components;
 using GameNetcodeStuff;
@@ -12,8 +13,12 @@ namespace AdditionalNetworking.Patches
     {
         private static readonly ConditionalWeakTable<PlayerControllerB, PlayerNetworking> networkingTable =
             new ConditionalWeakTable<PlayerControllerB, PlayerNetworking>();
-
-        [HarmonyPrefix]
+        
+        /// <summary>
+        ///  Grab the associated NetworkingComponent.
+        /// </summary>
+        [HarmonyPostfix]
+        [HarmonyPriority(Priority.VeryLow)]
         [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.Start))]
         private static void onStart(PlayerControllerB __instance)
         {
@@ -24,7 +29,9 @@ namespace AdditionalNetworking.Patches
                 networkingTable.Add(__instance, networkingComponent);
         }
         
-        
+        /// <summary>
+        ///  broadcast changed held slot.
+        /// </summary>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.SwitchToItemSlot))]
         private static void onSlotChange(PlayerControllerB __instance, int slot)
@@ -35,24 +42,89 @@ namespace AdditionalNetworking.Patches
             }
         }
         
-                
+        /// <summary>
+        ///  broadcast new inventory status on item grab.
+        /// </summary>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.GrabObjectClientRpc))]
-        private static void onSlotChange(PlayerControllerB __instance)
+        private static void onItemGrabbed(PlayerControllerB __instance, bool grabValidated)
+        {
+            if (!grabValidated)
+                return;
+            
+            if (__instance.IsOwner && networkingTable.TryGetValue(__instance, out var playerNetworking))
+            {
+                List<NetworkObjectReference> networkObjects= new List<NetworkObjectReference>();
+                List<int> slots = new List<int>();
+                for (var i = 0; i < __instance.ItemSlots.Length; i++)
+                {
+                    var slot = __instance.ItemSlots[i];
+                    if (slot != null)
+                    {
+                        networkObjects.Add(slot.NetworkObject);
+                        slots.Add(i);
+                    }
+                }
+                playerNetworking.syncInventoryServerRpc(networkObjects.ToArray(),slots.ToArray());
+            }
+        }        
+        
+        /// <summary>
+        ///  broadcast new inventory status on item discarded.
+        /// </summary>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.DiscardHeldObject))]
+        private static void onDiscardItem(PlayerControllerB __instance)
         {
             if (__instance.IsOwner && networkingTable.TryGetValue(__instance, out var playerNetworking))
             {
-                var networkObjectArray =
-                    __instance.ItemSlots.Select(g => (NetworkObjectReference)(g!=null?g.NetworkObject:null)).ToArray();
-                playerNetworking.syncInventoryServerRpc(networkObjectArray);
+                List<NetworkObjectReference> networkObjects= new List<NetworkObjectReference>();
+                List<int> slots = new List<int>();
+                for (var i = 0; i < __instance.ItemSlots.Length; i++)
+                {
+                    var slot = __instance.ItemSlots[i];
+                    if (slot != null)
+                    {
+                        networkObjects.Add(slot.NetworkObject);
+                        slots.Add(i);
+                    }
+                }
+                playerNetworking.syncInventoryServerRpc(networkObjects.ToArray(),slots.ToArray());
+            }
+        }        
+        
+        /// <summary>
+        ///  broadcast new inventory status.
+        /// </summary>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.DropAllHeldItems))]
+        private static void onDropItem(PlayerControllerB __instance)
+        {
+            if (__instance.IsOwner && networkingTable.TryGetValue(__instance, out var playerNetworking))
+            {
+                List<NetworkObjectReference> networkObjects= new List<NetworkObjectReference>();
+                List<int> slots = new List<int>();
+                for (var i = 0; i < __instance.ItemSlots.Length; i++)
+                {
+                    var slot = __instance.ItemSlots[i];
+                    if (slot != null)
+                    {
+                        networkObjects.Add(slot.NetworkObject);
+                        slots.Add(i);
+                    }
+                }
+                playerNetworking.syncInventoryServerRpc(networkObjects.ToArray(),slots.ToArray());
             }
         }
         
+        /// <summary>
+        ///  broadcast username change.
+        /// </summary>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.ConnectClientToPlayerObject))]
         private static void onPlayerConnected(PlayerControllerB __instance)
         {
-            if (__instance.IsOwner && networkingTable.TryGetValue(__instance, out var playerNetworking))
+            if (!__instance.IsServer && __instance.IsOwner && networkingTable.TryGetValue(__instance, out var playerNetworking))
             {
                 playerNetworking.syncUsernameServerRpc(__instance.playerUsername);
             }
