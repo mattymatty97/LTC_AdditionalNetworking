@@ -1,67 +1,55 @@
-﻿using System;
-using Unity.Netcode;
+﻿using Unity.Netcode;
+using UnityEngine;
 
 namespace AdditionalNetworking.Components
 {
     public class ShotgunNetworking: NetworkBehaviour
     {
-        private ShotgunItem _shotgunItem;
+        public static ShotgunNetworking Instance { get; private set; }
         
         /// <summary>
-        ///  Grab the associated VanillaComponent.
+        ///  Set the Instance
         /// </summary>
         private void Awake()
         {
-            _shotgunItem = gameObject.GetComponent<ShotgunItem>();
-            if (_shotgunItem == null)
-                AdditionalNetworking.Log.LogError($"{nameof(ShotgunNetworking)}#{GetInstanceID()} did not find associated ShotgunItem");
-        }
-        
-        /// <summary>
-        ///  request shotgun values upon creation.
-        /// </summary>
-        private void Start()
-        {
-            if (!IsServer)
-            {
-                //if not server request shotgun info
-                requestSyncServerRpc();
-            }
+            Instance = this;
         }
         
         /// <summary>
         ///  broadcast new ammo count.
         /// </summary>
-        [ServerRpc(RequireOwnership = true)]
-        public void syncAmmoServerRpc(int ammoCount)
+        [ServerRpc(RequireOwnership = false)]
+        public void syncAmmoServerRpc(NetworkObjectReference shotgunReference, int ammoCount)
         {
-            syncAmmoClientRpc(ammoCount);
+            syncAmmoClientRpc(shotgunReference, ammoCount);
         }
         
         /// <summary>
         ///  align new ammo count.
         /// </summary>
         [ClientRpc]
-        private void syncAmmoClientRpc(int ammoCount, ClientRpcParams clientRpcParams = default)
+        private void syncAmmoClientRpc(NetworkObjectReference shotgunReference, int ammoCount, ClientRpcParams clientRpcParams = default)
         {
+            var _shotgunItem = ((GameObject)shotgunReference).GetComponent<ShotgunItem>();
             _shotgunItem.shellsLoaded = ammoCount;
         }
                 
         /// <summary>
         ///  broadcast new safety status.
         /// </summary>
-        [ServerRpc(RequireOwnership = true)]
-        public void syncSafetyServerRpc(bool safety)
+        [ServerRpc(RequireOwnership = false)]
+        public void syncSafetyServerRpc(NetworkObjectReference shotgunReference, bool safety)
         {
-            syncSafetyClientRpc(safety);
+            syncSafetyClientRpc(shotgunReference, safety);
         }
                         
         /// <summary>
         ///  align new safety status.
         /// </summary>
         [ClientRpc]
-        private void syncSafetyClientRpc(bool safety, ClientRpcParams clientRpcParams = default)
+        private void syncSafetyClientRpc(NetworkObjectReference shotgunReference, bool safety, ClientRpcParams clientRpcParams = default)
         {
+            var _shotgunItem = ((GameObject)shotgunReference).GetComponent<ShotgunItem>();
             _shotgunItem.safetyOn = safety;
         }
         
@@ -70,8 +58,9 @@ namespace AdditionalNetworking.Components
         ///  request server values for ammo and safety.
         /// </summary>
         [ServerRpc(RequireOwnership = false)]
-        public void requestSyncServerRpc(ServerRpcParams serverRpcParams = default)
+        public void requestSyncServerRpc(NetworkObjectReference shotgunReference, ServerRpcParams serverRpcParams = default)
         {
+            var _shotgunItem = ((GameObject)shotgunReference).GetComponent<ShotgunItem>();
             ClientRpcParams clientRpcParams = new ClientRpcParams
             {
                 Send = new ClientRpcSendParams
@@ -79,8 +68,8 @@ namespace AdditionalNetworking.Components
                     TargetClientIds = new ulong[]{serverRpcParams.Receive.SenderClientId}
                 }
             };
-            syncAmmoClientRpc(_shotgunItem.shellsLoaded, clientRpcParams);
-            syncSafetyClientRpc(_shotgunItem.safetyOn, clientRpcParams);
+            syncAmmoClientRpc(shotgunReference, _shotgunItem.shellsLoaded, clientRpcParams);
+            syncSafetyClientRpc(shotgunReference, _shotgunItem.safetyOn, clientRpcParams);
         }
         
     }

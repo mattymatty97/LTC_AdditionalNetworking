@@ -6,13 +6,14 @@ using AdditionalNetworking.Dependency;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
-using GameNetcodeStuff;
 using HarmonyLib;
+using Unity.Netcode;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace AdditionalNetworking
 {
     [BepInPlugin(GUID, NAME, VERSION)]
-    [BepInDependency(RuntimeNetcodeRPCValidator.MyPluginInfo.PLUGIN_GUID, RuntimeNetcodeRPCValidator.MyPluginInfo.PLUGIN_VERSION)]
     //[BepInDependency("BMX.LobbyCompatibility", Flags:BepInDependency.DependencyFlags.HardDependency)]
     internal class AdditionalNetworking : BaseUnityPlugin
     {
@@ -21,6 +22,9 @@ namespace AdditionalNetworking
         public const string VERSION = "0.0.1";
 
         internal static ManualLogSource Log;
+
+        internal static GameObject NetcodeContainer { get; private set; }
+        internal static GameObject NetcodePrefab { get; private set; }
             
         private void Awake()
         {
@@ -35,17 +39,36 @@ namespace AdditionalNetworking
 
 				PluginConfig.Init(this);
 				
-				Log.LogInfo("Adding Netcode");
-				var netcodeValidator = new RuntimeNetcodeRPCValidator.NetcodeValidator(GUID);
-				netcodeValidator.PatchAll();
+				Log.LogInfo("Initializing Netcode");
 				
-				netcodeValidator.BindToPreExistingObjectByBehaviour<PlayerNetworking, PlayerControllerB>();
-				netcodeValidator.BindToPreExistingObjectByBehaviour<ShotgunNetworking, ShotgunItem>();
-				//netcodeValidator.BindToPreExistingObjectByBehaviour<PlayerNetworking, PlayerControllerB>();
+				var types = Assembly.GetExecutingAssembly().GetTypes();
+				foreach (var type in types)
+				{
+					var methods = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+					foreach (var method in methods)
+					{
+						var attributes = method.GetCustomAttributes(typeof(RuntimeInitializeOnLoadMethodAttribute), false);
+						if (attributes.Length > 0)
+						{
+							method.Invoke(null, null);
+						}
+					}
+				}
+
+				NetcodeContainer = new GameObject($"{NAME}Container");
+				NetcodeContainer.hideFlags |= HideFlags.HideAndDontSave;
+				Object.DontDestroyOnLoad(NetcodeContainer);
+				NetcodeContainer.SetActive(false);
+				NetcodePrefab = new GameObject($"{NAME}Prefab");
+				NetcodePrefab.transform.parent = NetcodeContainer.transform;
+				var networkObject = NetcodePrefab.AddComponent<NetworkObject>();
+				networkObject.GlobalObjectIdHash = 28111997;
+				NetcodePrefab.AddComponent<PlayerNetworking>();
+				NetcodePrefab.AddComponent<ShotgunNetworking>();
 				
 				Log.LogInfo("Patching Methods");
 				var harmony = new Harmony(GUID);
-				harmony.PatchAll(Assembly.GetExecutingAssembly());
+				harmony.PatchAll();
 				
 				Log.LogInfo(NAME + " v" + VERSION + " Loaded!");
 				if (AsyncLoggerProxy.Enabled)

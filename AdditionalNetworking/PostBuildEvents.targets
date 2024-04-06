@@ -29,9 +29,7 @@
         <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Unity.TextMeshPro.dll" Publicize="false"/>
         <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\UnityEngine.dll" Publicize="false"/>
         <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\UnityEngine.CoreModule.dll" Publicize="false"/>
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\UnityEngine.PhysicsModule.dll" Publicize="false"/>
         <Reference Include="..\Dependencies\AsyncLoggers.dll" Publicize="false"/>
-        <Reference Include="..\Dependencies\NicholaScott.BepInEx.RuntimeNetcodeRPCValidator.dll" Publicize="false"/>
 </ItemGroup>
 
 <!-- Ensure the user (you!) has actually set everything up properly. -->
@@ -63,7 +61,6 @@
     <Target Name="CopyToGameFolder" AfterTargets="Build">
         <Message Importance="high" Text="Copying files to game directory."/>
         <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModDirectory)"/>
-        <Copy SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFolder="$(ModDirectory)"/>
         <Copy SourceFiles="@(Assets)" DestinationFolder="$(ModDirectory)\%(Assets.RelativeDir)"/>
     </Target>
 
@@ -82,7 +79,6 @@
     <Target Name="PrepareZip" AfterTargets="Build" Condition="$(Configuration.Contains('Release'))">
         <Message Importance="normal" Text="Copying files to temporary directory."/>
         <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(TempZipDir)\$(ZipStructure)"/>
-        <Copy SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFolder="$(TempZipDir)\$(ZipStructure)"/>
         <Copy SourceFiles="@(Assets)" DestinationFolder="$(TempZipDir)\$(ZipStructure)\%(Assets.RelativeDir)"/>
         <Copy SourceFiles="@(ThunderStoreItems)" DestinationFolder="$(TempZipDir)\$(ThunderStoreItems)"/>
     </Target>
@@ -100,5 +96,8 @@
     <Target Name="CopyToZipsFolder" AfterTargets="Cleanup" Condition="$(Configuration.Contains('Release')) And '$(ReleaseZipDirectory)' != ''">
         <Message Importance="normal" Text="Moving finished zip file to zip directory."/>
         <Copy SourceFiles="$(ZipFile)" DestinationFolder="$(ReleaseZipDirectory)"/>
+    </Target>
+    <Target Name="NetcodePatch" AfterTargets="PostBuildEvent">
+        <Exec Command="netcode-patch -nv 1.5.2 &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies->'&quot;%(Identity)&quot;', ' ')"/>
     </Target>
 </Project>

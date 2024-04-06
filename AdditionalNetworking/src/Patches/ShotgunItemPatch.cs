@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using AdditionalNetworking.Components;
+﻿using AdditionalNetworking.Components;
 using HarmonyLib;
 
 namespace AdditionalNetworking.Patches
@@ -7,22 +6,20 @@ namespace AdditionalNetworking.Patches
     [HarmonyPatch]
     internal class ShotgunItemPatch
     {
-        private static readonly ConditionalWeakTable<ShotgunItem, ShotgunNetworking> networkingTable =
-            new ConditionalWeakTable<ShotgunItem, ShotgunNetworking>();
-        
         /// <summary>
-        ///  Grab the associated NetworkingComponent.
+        ///  Sync on Creation
         /// </summary>
-        [HarmonyPostfix]
-        [HarmonyPriority(Priority.VeryLow)]
+        [HarmonyPrefix]
         [HarmonyPatch(typeof(ShotgunItem),nameof(ShotgunItem.Start))]
         private static void onStart(ShotgunItem __instance)
         {
-            var networkingComponent = __instance.gameObject.GetComponent<ShotgunNetworking>();
-            if (networkingComponent == null)
-                AdditionalNetworking.Log.LogError($"{nameof(ShotgunItem)}#{__instance.GetInstanceID()} did not find associated PlayerNetworking");
-            else
-                networkingTable.Add(__instance, networkingComponent);
+            if (ShotgunNetworking.Instance == null)
+                return;
+            
+            if (!__instance.IsServer)
+            {
+                ShotgunNetworking.Instance.requestSyncServerRpc(__instance.NetworkObject);
+            }
         }
         
         /// <summary>
@@ -32,13 +29,13 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(ShotgunItem),nameof(ShotgunItem.ReloadGunEffectsServerRpc))]
         private static void onAmmoReload(ShotgunItem __instance, bool start)
         {
+            if (ShotgunNetworking.Instance == null)
+                return;
+
             if (start || !__instance.IsOwner)
                 return;
             
-            if (networkingTable.TryGetValue(__instance, out var shotgunNetworking))
-            {
-                shotgunNetworking.syncAmmoServerRpc(__instance.shellsLoaded);
-            }
+            ShotgunNetworking.Instance.syncAmmoServerRpc(__instance.NetworkObject, __instance.shellsLoaded);
         }        
         
         /// <summary>
@@ -48,14 +45,14 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(ShotgunItem),nameof(ShotgunItem.ShootGun))]
         private static void onShot(ShotgunItem __instance)
         {
-            //if the gun is dropped allow the server to broadcast
+            if (ShotgunNetworking.Instance == null)
+                return;
+
             if (!__instance.IsOwner)
                 return;
-            
-            if (networkingTable.TryGetValue(__instance, out var shotgunNetworking))
-            {
-                shotgunNetworking.syncAmmoServerRpc(__instance.shellsLoaded);
-            }
+
+            ShotgunNetworking.Instance.syncAmmoServerRpc(__instance.NetworkObject, __instance.shellsLoaded);
+
         }
         
         /// <summary>
@@ -65,10 +62,13 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(ShotgunItem),nameof(ShotgunItem.ItemInteractLeftRight))]
         private static void onSafetyToggle(ShotgunItem __instance, bool right)
         {
-            if (__instance.IsOwner && !right && networkingTable.TryGetValue(__instance, out var shotgunNetworking))
-            {
-                shotgunNetworking.syncSafetyServerRpc(__instance.safetyOn);
-            }
+            if (ShotgunNetworking.Instance == null)
+                return;
+            
+            if (!__instance.IsOwner)
+                return;
+            
+            ShotgunNetworking.Instance.syncSafetyServerRpc(__instance.NetworkObject, __instance.safetyOn);
         }
         
     }

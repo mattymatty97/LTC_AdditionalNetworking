@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using AdditionalNetworking.Components;
 using GameNetcodeStuff;
 using HarmonyLib;
@@ -11,22 +9,18 @@ namespace AdditionalNetworking.Patches
     [HarmonyPatch]
     internal class PlayerControllerBPatch
     {
-        private static readonly ConditionalWeakTable<PlayerControllerB, PlayerNetworking> networkingTable =
-            new ConditionalWeakTable<PlayerControllerB, PlayerNetworking>();
-        
         /// <summary>
-        ///  Grab the associated NetworkingComponent.
+        ///  Request the username fr.
         /// </summary>
-        [HarmonyPostfix]
-        [HarmonyPriority(Priority.VeryLow)]
+        [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.Start))]
         private static void onStart(PlayerControllerB __instance)
         {
-            var networkingComponent = __instance.gameObject.GetComponent<PlayerNetworking>();
-            if (networkingComponent == null)
-                AdditionalNetworking.Log.LogError($"{nameof(PlayerControllerB)}#{__instance.GetInstanceID()} did not find associated PlayerNetworking");
-            else
-                networkingTable.Add(__instance, networkingComponent);
+            if (PlayerNetworking.Instance == null)
+                return;
+            
+            if (!__instance.IsServer)
+                PlayerNetworking.Instance.requestSyncUsernameServerRpc(__instance.NetworkObject);
         }
         
         /// <summary>
@@ -36,9 +30,12 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.SwitchToItemSlot))]
         private static void onSlotChange(PlayerControllerB __instance, int slot)
         {
-            if (__instance.IsOwner && networkingTable.TryGetValue(__instance, out var playerNetworking))
+            if (PlayerNetworking.Instance == null)
+                return;
+            
+            if (__instance.IsOwner)
             {
-                playerNetworking.syncSelectedSlotServerRpc(slot);
+                PlayerNetworking.Instance.syncSelectedSlotServerRpc(__instance.NetworkObject, slot);
             }
         }
         
@@ -49,10 +46,13 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.GrabObjectClientRpc))]
         private static void onItemGrabbed(PlayerControllerB __instance, bool grabValidated)
         {
+            if (PlayerNetworking.Instance == null)
+                return;
+            
             if (!grabValidated)
                 return;
             
-            if (__instance.IsOwner && networkingTable.TryGetValue(__instance, out var playerNetworking))
+            if (__instance.IsOwner)
             {
                 List<NetworkObjectReference> networkObjects= new List<NetworkObjectReference>();
                 List<int> slots = new List<int>();
@@ -65,7 +65,8 @@ namespace AdditionalNetworking.Patches
                         slots.Add(i);
                     }
                 }
-                playerNetworking.syncInventoryServerRpc(networkObjects.ToArray(),slots.ToArray());
+                PlayerNetworking.Instance.syncInventoryServerRpc(__instance.NetworkObject,networkObjects.ToArray(),slots.ToArray());
+                PlayerNetworking.Instance.syncSelectedSlotServerRpc(__instance.NetworkObject, __instance.currentItemSlot);
             }
         }        
         
@@ -76,7 +77,10 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.DiscardHeldObject))]
         private static void onDiscardItem(PlayerControllerB __instance)
         {
-            if (__instance.IsOwner && networkingTable.TryGetValue(__instance, out var playerNetworking))
+            if (PlayerNetworking.Instance == null)
+                return;
+            
+            if (__instance.IsOwner)
             {
                 List<NetworkObjectReference> networkObjects= new List<NetworkObjectReference>();
                 List<int> slots = new List<int>();
@@ -89,7 +93,8 @@ namespace AdditionalNetworking.Patches
                         slots.Add(i);
                     }
                 }
-                playerNetworking.syncInventoryServerRpc(networkObjects.ToArray(),slots.ToArray());
+                PlayerNetworking.Instance.syncInventoryServerRpc(__instance.NetworkObject,networkObjects.ToArray(),slots.ToArray());
+                PlayerNetworking.Instance.syncSelectedSlotServerRpc(__instance.NetworkObject, __instance.currentItemSlot);
             }
         }        
         
@@ -100,7 +105,10 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.DropAllHeldItems))]
         private static void onDropItem(PlayerControllerB __instance)
         {
-            if (__instance.IsOwner && networkingTable.TryGetValue(__instance, out var playerNetworking))
+            if (PlayerNetworking.Instance == null)
+                return;
+            
+            if (__instance.IsOwner)
             {
                 List<NetworkObjectReference> networkObjects= new List<NetworkObjectReference>();
                 List<int> slots = new List<int>();
@@ -113,7 +121,8 @@ namespace AdditionalNetworking.Patches
                         slots.Add(i);
                     }
                 }
-                playerNetworking.syncInventoryServerRpc(networkObjects.ToArray(),slots.ToArray());
+                PlayerNetworking.Instance.syncInventoryServerRpc(__instance.NetworkObject,networkObjects.ToArray(),slots.ToArray());
+                PlayerNetworking.Instance.syncSelectedSlotServerRpc(__instance.NetworkObject, __instance.currentItemSlot);
             }
         }
         
@@ -124,9 +133,13 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.ConnectClientToPlayerObject))]
         private static void onPlayerConnected(PlayerControllerB __instance)
         {
-            if (!__instance.IsServer && __instance.IsOwner && networkingTable.TryGetValue(__instance, out var playerNetworking))
+            if (PlayerNetworking.Instance == null)
+                return;
+            
+            if (!__instance.IsServer && __instance.IsOwner)
             {
-                playerNetworking.syncUsernameServerRpc(__instance.playerUsername);
+                PlayerNetworking.Instance.syncUsernameServerRpc(__instance.NetworkObject, __instance.playerUsername);
+                PlayerNetworking.Instance.syncSelectedSlotServerRpc(__instance.NetworkObject, __instance.currentItemSlot);
             }
         }
         
