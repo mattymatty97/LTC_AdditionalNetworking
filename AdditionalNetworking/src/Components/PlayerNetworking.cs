@@ -25,7 +25,7 @@ namespace AdditionalNetworking.Components
         [ServerRpc(RequireOwnership = false)]
         public void syncInventoryServerRpc(NetworkObjectReference controllerReference, NetworkObjectReference[] inventory, int[] slots, ServerRpcParams serverRpcParams = default)
         {
-            AdditionalNetworking.Log.LogInfo($"syncInventoryServerRpc was called!");
+            AdditionalNetworking.Log.LogDebug($"syncInventoryServerRpc was called for {controllerReference.NetworkObjectId}!");
             var _controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
             //limit the list to the max slots of the server
             List<NetworkObjectReference> valid = new List<NetworkObjectReference>();
@@ -65,10 +65,10 @@ namespace AdditionalNetworking.Components
         ///  if we're the owner do not update the current inventory but check if the server has truncated the request
         /// </summary>
         [ClientRpc]
-        private void syncInventoryClientRpc(NetworkObjectReference controllerObject, NetworkObjectReference[] inventory, int[] slots)
+        private void syncInventoryClientRpc(NetworkObjectReference controllerReference, NetworkObjectReference[] inventory, int[] slots)
         {
-            AdditionalNetworking.Log.LogInfo($"syncInventoryClientRpc was called!");
-            var _controllerB = ((GameObject)controllerObject).GetComponent<PlayerControllerB>();
+            AdditionalNetworking.Log.LogDebug($"syncInventoryClientRpc was called for {controllerReference.NetworkObjectId}!");
+            var _controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
             HashSet<GrabbableObject> missingObjects = new HashSet<GrabbableObject>(_controllerB.ItemSlots.Where(g=>g!=null));
             if (!_controllerB.IsOwner)
                 //flush the inventory
@@ -108,7 +108,7 @@ namespace AdditionalNetworking.Components
                         TargetClientIds = new ulong[]{_controllerB.OwnerClientId}
                     }
                 };
-                throwExtraItemsClientRpc(controllerObject, missingObjects.Select(g => (NetworkObjectReference)g.NetworkObject).ToArray(),clientRpcParams);
+                throwExtraItemsClientRpc(controllerReference, missingObjects.Select(g => (NetworkObjectReference)g.NetworkObject).ToArray(),clientRpcParams);
             }
         }
 
@@ -116,10 +116,10 @@ namespace AdditionalNetworking.Components
         ///  safely drop requested items.
         /// </summary>
         [ClientRpc]
-        private void throwExtraItemsClientRpc(NetworkObjectReference controllerObject, NetworkObjectReference[] objectsToThrow, ClientRpcParams clientRpcParams = default)
+        private void throwExtraItemsClientRpc(NetworkObjectReference controllerReference, NetworkObjectReference[] objectsToThrow, ClientRpcParams clientRpcParams = default)
         {
-            AdditionalNetworking.Log.LogInfo($"throwExtraItemsClientRpc was called!");
-            var _controllerB = ((GameObject)controllerObject).GetComponent<PlayerControllerB>();
+            AdditionalNetworking.Log.LogDebug($"throwExtraItemsClientRpc was called for {controllerReference.NetworkObjectId}!");
+            var _controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
             if (!_controllerB.IsOwner)
                 return;
 
@@ -137,25 +137,25 @@ namespace AdditionalNetworking.Components
         ///  broadcast new held item.
         /// </summary>
         [ServerRpc(RequireOwnership = false)]
-        public void syncSelectedSlotServerRpc(NetworkObjectReference controllerObject, int selectedSlot)
+        public void syncSelectedSlotServerRpc(NetworkObjectReference controllerReference, int selectedSlot)
         {
-            AdditionalNetworking.Log.LogInfo($"syncSelectedSlotServerRpc was called!");
-            syncSelectedSlotClientRpc(controllerObject, selectedSlot);
+            AdditionalNetworking.Log.LogDebug($"syncSelectedSlotServerRpc was called for {controllerReference.NetworkObjectId}! slot:{selectedSlot}");
+            syncSelectedSlotClientRpc(controllerReference, selectedSlot);
         }        
                 
         /// <summary>
         ///  align new held item.
         /// </summary>
         [ClientRpc]
-        private void syncSelectedSlotClientRpc(NetworkObjectReference controllerObject, int selectedSlot)
+        private void syncSelectedSlotClientRpc(NetworkObjectReference controllerReference, int selectedSlot)
         {
-            AdditionalNetworking.Log.LogInfo($"syncSelectedSlotClientRpc was called!");
-            var _controllerB = ((GameObject)controllerObject).GetComponent<PlayerControllerB>();
+            var _controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
+            AdditionalNetworking.Log.LogDebug($"syncSelectedSlotClientRpc was called for {controllerReference.NetworkObjectId}! slot:{selectedSlot} was:{_controllerB.currentItemSlot}");
             if (_controllerB.IsOwner)
                 return;
             
             if (_controllerB.currentItemSlot != selectedSlot)
-                _controllerB.SwitchToItemSlot(_controllerB.currentItemSlot);
+                _controllerB.SwitchToItemSlot(selectedSlot);
         }
 
         /// <summary>
@@ -163,20 +163,20 @@ namespace AdditionalNetworking.Components
         ///  ( de-sync typically in lateJoin cases )
         /// </summary>
         [ServerRpc(RequireOwnership = false)]
-        public void syncUsernameServerRpc(NetworkObjectReference controllerObject, string username)
+        public void syncUsernameServerRpc(NetworkObjectReference controllerReference, string username)
         {
-            AdditionalNetworking.Log.LogInfo($"syncUsernameServerRpc was called!");
-            syncUsernameClientRpc(controllerObject, username);
+            AdditionalNetworking.Log.LogDebug($"syncUsernameServerRpc was called for {controllerReference.NetworkObjectId}!");
+            syncUsernameClientRpc(controllerReference, username);
         }
         
         /// <summary>
         ///  align player name.
         /// </summary>
         [ClientRpc]
-        public void syncUsernameClientRpc(NetworkObjectReference controllerObject, string username, ClientRpcParams clientRpcParams = default)
+        public void syncUsernameClientRpc(NetworkObjectReference controllerReference, string username, ClientRpcParams clientRpcParams = default)
         {
-            AdditionalNetworking.Log.LogInfo($"syncUsernameClientRpc was called!");
-            var _controllerB = ((GameObject)controllerObject).GetComponent<PlayerControllerB>();
+            AdditionalNetworking.Log.LogDebug($"syncUsernameClientRpc was called for {controllerReference.NetworkObjectId}!");
+            var _controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
             if (_controllerB.IsOwner)
                 return;
             _controllerB.playerUsername = username;
@@ -189,10 +189,10 @@ namespace AdditionalNetworking.Components
         ///  request server username value.
         /// </summary>
         [ServerRpc(RequireOwnership = false)]
-        public void requestSyncUsernameServerRpc(NetworkObjectReference controllerObject, ServerRpcParams serverRpcParams = default)
+        public void requestSyncUsernameServerRpc(NetworkObjectReference controllerReference, ServerRpcParams serverRpcParams = default)
         {
-            AdditionalNetworking.Log.LogInfo($"requestSyncUsernameServerRpc was called!");
-            var _controllerB = ((GameObject)controllerObject).GetComponent<PlayerControllerB>();
+            AdditionalNetworking.Log.LogDebug($"requestSyncUsernameServerRpc was called for {controllerReference.NetworkObjectId} by {serverRpcParams.Receive.SenderClientId}!");
+            var _controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
             //only send update if player is connected!
             if (_controllerB.IsOwnedByServer)
                 return;
@@ -204,7 +204,7 @@ namespace AdditionalNetworking.Components
                     TargetClientIds = new ulong[]{serverRpcParams.Receive.SenderClientId}
                 }
             };
-            syncUsernameClientRpc(controllerObject, _controllerB.playerUsername, clientRpcParams);
+            syncUsernameClientRpc(controllerReference, _controllerB.playerUsername, clientRpcParams);
         }
         
     }

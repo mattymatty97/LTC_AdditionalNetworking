@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using AdditionalNetworking.Components;
 using GameNetcodeStuff;
 using HarmonyLib;
@@ -9,6 +10,9 @@ namespace AdditionalNetworking.Patches
     [HarmonyPatch]
     internal class PlayerControllerBPatch
     {
+
+        internal static readonly Dictionary<PlayerControllerB, bool> dirtySlots = [];
+        
         /// <summary>
         ///  Request the username fr.
         /// </summary>
@@ -24,20 +28,33 @@ namespace AdditionalNetworking.Patches
         }
         
         /// <summary>
-        ///  broadcast changed held slot.
+        ///  mark changed held slot.
         /// </summary>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.SwitchToItemSlot))]
         private static void onSlotChange(PlayerControllerB __instance, int slot)
         {
-            if (PlayerNetworking.Instance == null)
-                return;
-            
-            if (__instance.IsOwner)
+            dirtySlots[__instance] = true;
+        }
+        
+        /// <summary>
+        ///  broadcast changed held slot.
+        /// </summary>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.LateUpdate))]
+        private static void broadcastNewSlot(PlayerControllerB __instance)
+        {
+            if (dirtySlots.TryGetValue(__instance, out var value) && value)
             {
-                PlayerNetworking.Instance.syncSelectedSlotServerRpc(__instance.NetworkObject, slot);
+                dirtySlots[__instance] = false;
+                
+                if (__instance.IsOwner)
+                {
+                    PlayerNetworking.Instance.syncSelectedSlotServerRpc(__instance.NetworkObject, __instance.currentItemSlot);
+                }
             }
         }
+
         
         /// <summary>
         ///  broadcast new inventory status on item grab.
@@ -46,6 +63,12 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.GrabObjectClientRpc))]
         private static void onItemGrabbed(PlayerControllerB __instance, bool grabValidated)
         {
+            NetworkManager networkManager = __instance.NetworkManager;
+            if (networkManager == null || !networkManager.IsListening)
+                return;
+            if (__instance.__rpc_exec_stage != NetworkBehaviour.__RpcExecStage.Client || !networkManager.IsClient && !networkManager.IsHost)
+                return;
+            
             if (PlayerNetworking.Instance == null)
                 return;
             
@@ -66,7 +89,7 @@ namespace AdditionalNetworking.Patches
                     }
                 }
                 PlayerNetworking.Instance.syncInventoryServerRpc(__instance.NetworkObject,networkObjects.ToArray(),slots.ToArray());
-                PlayerNetworking.Instance.syncSelectedSlotServerRpc(__instance.NetworkObject, __instance.currentItemSlot);
+                //PlayerNetworking.Instance.syncSelectedSlotServerRpc(__instance.NetworkObject, __instance.currentItemSlot);
             }
         }        
         
@@ -94,7 +117,7 @@ namespace AdditionalNetworking.Patches
                     }
                 }
                 PlayerNetworking.Instance.syncInventoryServerRpc(__instance.NetworkObject,networkObjects.ToArray(),slots.ToArray());
-                PlayerNetworking.Instance.syncSelectedSlotServerRpc(__instance.NetworkObject, __instance.currentItemSlot);
+                //PlayerNetworking.Instance.syncSelectedSlotServerRpc(__instance.NetworkObject, __instance.currentItemSlot);
             }
         }        
         
@@ -122,7 +145,7 @@ namespace AdditionalNetworking.Patches
                     }
                 }
                 PlayerNetworking.Instance.syncInventoryServerRpc(__instance.NetworkObject,networkObjects.ToArray(),slots.ToArray());
-                PlayerNetworking.Instance.syncSelectedSlotServerRpc(__instance.NetworkObject, __instance.currentItemSlot);
+                //PlayerNetworking.Instance.syncSelectedSlotServerRpc(__instance.NetworkObject, __instance.currentItemSlot);
             }
         }
         
@@ -139,7 +162,6 @@ namespace AdditionalNetworking.Patches
             if (!__instance.IsServer && __instance.IsOwner)
             {
                 PlayerNetworking.Instance.syncUsernameServerRpc(__instance.NetworkObject, __instance.playerUsername);
-                PlayerNetworking.Instance.syncSelectedSlotServerRpc(__instance.NetworkObject, __instance.currentItemSlot);
             }
         }
         
