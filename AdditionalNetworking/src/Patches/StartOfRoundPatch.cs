@@ -1,21 +1,18 @@
-﻿using HarmonyLib;
-using Unity.Netcode;
+﻿using AdditionalNetworking.Components;
+using HarmonyLib;
 
 namespace AdditionalNetworking.Patches;
 
 [HarmonyPatch]
-public class StartOfRoundPatch
+internal class StartOfRoundPatch
 {
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(StartOfRound),nameof(StartOfRound.Start))]
-    private static void OnStart(StartOfRound __instance)
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnClientDisconnect))]
+    private static void onClientDisconnect(ulong clientId)
     {
-        if (__instance.IsServer)
-        {
-            var NetcodeObject = UnityEngine.Object.Instantiate(AdditionalNetworking.NetcodePrefab);
-            var networkObject = NetcodeObject.GetComponent<NetworkObject>();
-            networkObject.SpawnWithObservers = true;
-            networkObject.Spawn();
-        }
+        if (PlayerNetworking.Instance != null)
+            PlayerNetworking.Instance.ValidClientIDs.Remove(clientId);
+        if (ShotgunNetworking.Instance != null)
+            ShotgunNetworking.Instance.ValidClientIDs.Remove(clientId);
     }
 }

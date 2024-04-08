@@ -63,6 +63,7 @@ namespace AdditionalNetworking
 				NetcodePrefab.transform.parent = NetcodeContainer.transform;
 				var networkObject = NetcodePrefab.AddComponent<NetworkObject>();
 				networkObject.GlobalObjectIdHash = 28111997;
+				networkObject.AutoObjectParentSync = false;
 				NetcodePrefab.AddComponent<PlayerNetworking>();
 				NetcodePrefab.AddComponent<ShotgunNetworking>();
 				

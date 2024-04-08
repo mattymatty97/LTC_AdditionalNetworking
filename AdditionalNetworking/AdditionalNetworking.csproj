@@ -9,14 +9,25 @@
         <LangVersion>Latest</LangVersion>
     </PropertyGroup>
     <ItemGroup>
-        <Content Include="GameDirectory.targets"/>
-        <Content Include="PostBuildEvents.targets"/>
-    </ItemGroup>
-    <ItemGroup>
-      <PackageReference Include="System.Runtime" Version="4.3.1" />
-    </ItemGroup>
-    <ItemGroup>
       <PackageReference Include="TeamBMX.LobbyCompatibility" Version="1.0.1" />
+      <PackageReference Include="BepInEx.Core" Version="5.4.21" />
+    </ItemGroup>
+    <!-- Defining the reference files that have to be publicized. -->
+    <ItemGroup>
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all"/>
+
+        <!-- Publicize directly when referencing -->
+        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Assembly-CSharp.dll" Publicize="true"/>
+        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Assembly-CSharp-firstpass.dll" Publicize="true"/>
+        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Facepunch.Steamworks.Win64.dll" Publicize="true"/>
+        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Unity.Netcode.Runtime.dll" Publicize="true"/>
+        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Unity.Netcode.Components.dll" Publicize="true"/>
+
+        <!-- clean referencing -->
+        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Unity.TextMeshPro.dll" Publicize="false"/>
+        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\UnityEngine.dll" Publicize="false"/>
+        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\UnityEngine.CoreModule.dll" Publicize="false"/>
+        <Reference Include="..\Dependencies\AsyncLoggers.dll" Publicize="false"/>
     </ItemGroup>
     <Import Project="PostBuildEvents.targets"/>
 	<!-- Embedded Debug -->
@@ -24,5 +35,11 @@
 		<DebugSymbols>true</DebugSymbols>
 		<DebugType>embedded</DebugType>
 		<PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+	  <NoWarn>1701;1702;CS0436</NoWarn>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+	  <NoWarn>1701;1702;CS0436</NoWarn>
 	</PropertyGroup>
 </Project>

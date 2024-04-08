@@ -13,7 +13,7 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(ShotgunItem),nameof(ShotgunItem.Start))]
         private static void onStart(ShotgunItem __instance)
         {
-            if (ShotgunNetworking.Instance == null)
+            if (ShotgunNetworking.Instance == null || !ShotgunNetworking.Instance.Enabled)
                 return;
             
             if (!__instance.IsServer)
@@ -29,7 +29,7 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(ShotgunItem),nameof(ShotgunItem.ReloadGunEffectsServerRpc))]
         private static void onAmmoReload(ShotgunItem __instance, bool start)
         {
-            if (ShotgunNetworking.Instance == null)
+            if (ShotgunNetworking.Instance == null || !ShotgunNetworking.Instance.Enabled)
                 return;
 
             if (start || !__instance.IsOwner)
@@ -45,7 +45,7 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(ShotgunItem),nameof(ShotgunItem.ShootGun))]
         private static void onShot(ShotgunItem __instance)
         {
-            if (ShotgunNetworking.Instance == null)
+            if (ShotgunNetworking.Instance == null || !ShotgunNetworking.Instance.Enabled)
                 return;
 
             if (!__instance.IsOwner)
@@ -62,7 +62,7 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(ShotgunItem),nameof(ShotgunItem.ItemInteractLeftRight))]
         private static void onSafetyToggle(ShotgunItem __instance, bool right)
         {
-            if (ShotgunNetworking.Instance == null)
+            if (ShotgunNetworking.Instance == null || !ShotgunNetworking.Instance.Enabled)
                 return;
             
             if (!__instance.IsOwner)

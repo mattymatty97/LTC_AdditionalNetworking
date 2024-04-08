@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using AdditionalNetworking.Components;
 using GameNetcodeStuff;
 using HarmonyLib;
@@ -20,7 +19,7 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.Start))]
         private static void onStart(PlayerControllerB __instance)
         {
-            if (PlayerNetworking.Instance == null)
+            if (PlayerNetworking.Instance == null || !PlayerNetworking.Instance.Enabled)
                 return;
             
             if (!__instance.IsServer)
@@ -44,6 +43,9 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.LateUpdate))]
         private static void broadcastNewSlot(PlayerControllerB __instance)
         {
+            if (PlayerNetworking.Instance == null || !PlayerNetworking.Instance.Enabled)
+                return;
+            
             if (dirtySlots.TryGetValue(__instance, out var value) && value)
             {
                 dirtySlots[__instance] = false;
@@ -69,7 +71,7 @@ namespace AdditionalNetworking.Patches
             if (__instance.__rpc_exec_stage != NetworkBehaviour.__RpcExecStage.Client || !networkManager.IsClient && !networkManager.IsHost)
                 return;
             
-            if (PlayerNetworking.Instance == null)
+            if (PlayerNetworking.Instance == null || !PlayerNetworking.Instance.Enabled)
                 return;
             
             if (!grabValidated)
@@ -89,7 +91,6 @@ namespace AdditionalNetworking.Patches
                     }
                 }
                 PlayerNetworking.Instance.syncInventoryServerRpc(__instance.NetworkObject,networkObjects.ToArray(),slots.ToArray());
-                //PlayerNetworking.Instance.syncSelectedSlotServerRpc(__instance.NetworkObject, __instance.currentItemSlot);
             }
         }        
         
@@ -100,7 +101,7 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.DiscardHeldObject))]
         private static void onDiscardItem(PlayerControllerB __instance)
         {
-            if (PlayerNetworking.Instance == null)
+            if (PlayerNetworking.Instance == null || !PlayerNetworking.Instance.Enabled)
                 return;
             
             if (__instance.IsOwner)
@@ -117,7 +118,6 @@ namespace AdditionalNetworking.Patches
                     }
                 }
                 PlayerNetworking.Instance.syncInventoryServerRpc(__instance.NetworkObject,networkObjects.ToArray(),slots.ToArray());
-                //PlayerNetworking.Instance.syncSelectedSlotServerRpc(__instance.NetworkObject, __instance.currentItemSlot);
             }
         }        
         
@@ -128,7 +128,7 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.DropAllHeldItems))]
         private static void onDropItem(PlayerControllerB __instance)
         {
-            if (PlayerNetworking.Instance == null)
+            if (PlayerNetworking.Instance == null || !PlayerNetworking.Instance.Enabled)
                 return;
             
             if (__instance.IsOwner)
@@ -145,7 +145,6 @@ namespace AdditionalNetworking.Patches
                     }
                 }
                 PlayerNetworking.Instance.syncInventoryServerRpc(__instance.NetworkObject,networkObjects.ToArray(),slots.ToArray());
-                //PlayerNetworking.Instance.syncSelectedSlotServerRpc(__instance.NetworkObject, __instance.currentItemSlot);
             }
         }
         
@@ -156,7 +155,7 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(PlayerControllerB),nameof(PlayerControllerB.ConnectClientToPlayerObject))]
         private static void onPlayerConnected(PlayerControllerB __instance)
         {
-            if (PlayerNetworking.Instance == null)
+            if (PlayerNetworking.Instance == null || !PlayerNetworking.Instance.Enabled)
                 return;
             
             if (!__instance.IsServer && __instance.IsOwner)

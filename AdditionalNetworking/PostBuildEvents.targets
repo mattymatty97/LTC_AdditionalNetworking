@@ -7,32 +7,14 @@
         <GameDirTargetsFullPath>$(ProjectDir)$(GameDirTargetsFile)</GameDirTargetsFullPath>
     </PropertyGroup>
     <ItemGroup>
-<!--        <ThunderStoreItems Include="..\icon.png"/>-->
+        <!--        <ThunderStoreItems Include="..\icon.png"/>-->
         <ThunderStoreItems Include="..\manifest.json"/>
         <ThunderStoreItems Include="..\README.md"/>
         <ThunderStoreItems Include="..\CHANGELOG.md"/>
     </ItemGroup>
-    <!-- Defining the reference files that have to be publicized. -->
-    <ItemGroup>
-        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all"/>
 
-        <!-- Publicize directly when referencing -->
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Assembly-CSharp.dll" Publicize="true"/>
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Assembly-CSharp-firstpass.dll" Publicize="true"/>
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Facepunch.Steamworks.Win64.dll" Publicize="true"/>
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Unity.Netcode.Runtime.dll" Publicize="true"/>
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Unity.Netcode.Components.dll" Publicize="true"/>
 
-        <!-- clean referencing -->
-        <Reference Include="$(ProfileDirectory)\BepInEx\core\0Harmony.dll" Publicize="false"/>
-        <Reference Include="$(ProfileDirectory)\BepInEx\core\BepInEx.dll" Publicize="false"/>
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Unity.TextMeshPro.dll" Publicize="false"/>
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\UnityEngine.dll" Publicize="false"/>
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\UnityEngine.CoreModule.dll" Publicize="false"/>
-        <Reference Include="..\Dependencies\AsyncLoggers.dll" Publicize="false"/>
-</ItemGroup>
-
-<!-- Ensure the user (you!) has actually set everything up properly. -->
+    <!-- Ensure the user (you!) has actually set everything up properly. -->
     <Target Name="EnsureGameDirectoryDefined" BeforeTargets="PrepareForBuild">
         <PropertyGroup>
             <GameDirError>This project requires you to define your own game installation directory in a separate $(GameDirTargetsFile) file. Create this file in the same folder as the $(MSBuildProjectFile) and add a 'GameDirectory' MSBuild property to it to proceed. There is an example file in $(MSBuildThisFileDirectory) you can copy and adjust.</GameDirError>
