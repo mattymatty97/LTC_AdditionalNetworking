@@ -6,8 +6,17 @@ namespace AdditionalNetworking.Dependency
 {
     public static class LobbyCompatibilityChecker
     {
-        public static bool Enabled { get { return BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("BMX.LobbyCompatibility"); } }
-        
+        private static bool? _enabled;
+
+        public static bool Enabled
+        {
+            get
+            {
+                _enabled ??= BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("BMX.LobbyCompatibility");
+                return _enabled.Value;
+            }
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static void Init()
         {

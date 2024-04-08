@@ -14,7 +14,7 @@ using Object = UnityEngine.Object;
 namespace AdditionalNetworking
 {
     [BepInPlugin(GUID, NAME, VERSION)]
-    //[BepInDependency("BMX.LobbyCompatibility", Flags:BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("BMX.LobbyCompatibility", Flags:BepInDependency.DependencyFlags.SoftDependency)]
     internal class AdditionalNetworking : BaseUnityPlugin
     {
         public const string GUID = "mattymatty.AdditionalNetworking";

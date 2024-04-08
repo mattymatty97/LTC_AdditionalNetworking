@@ -3,6 +3,7 @@ using System.Linq;
 using GameNetcodeStuff;
 using Unity.Netcode;
 using UnityEngine;
+// ReSharper disable MemberCanBeMadeStatic.Local
 
 namespace AdditionalNetworking.Components
 {
@@ -116,7 +117,6 @@ namespace AdditionalNetworking.Components
         {
             AdditionalNetworking.Log.LogDebug($"syncInventoryClientRpc was called for {controllerReference.NetworkObjectId}!");
             var _controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
-            HashSet<GrabbableObject> missingObjects = new HashSet<GrabbableObject>(_controllerB.ItemSlots.Where(g=>g!=null));
             if (!_controllerB.IsOwner)
                 //flush the inventory
                 _controllerB.ItemSlots = new GrabbableObject[_controllerB.ItemSlots.Length];
@@ -129,7 +129,6 @@ namespace AdditionalNetworking.Components
                     if (networkObjectReference.TryGet(out var networkObject) &&
                         networkObject.TryGetComponent<GrabbableObject>(out var grabbableObject))
                     {
-                        missingObjects.Remove(grabbableObject);
                         if (!_controllerB.IsOwner)
                             _controllerB.ItemSlots[slot] = grabbableObject;
                     }
@@ -141,21 +140,9 @@ namespace AdditionalNetworking.Components
                 }
                 else
                 {
+                    //should never happen but better be safe
                     //TODO: handle too many slots
                 }
-            }
-
-            if (IsServer && missingObjects.Count > 0)
-            {
-                //should never happen but it's a good idea to handle that case
-                ClientRpcParams clientRpcParams2 = new ClientRpcParams
-                {
-                    Send = new ClientRpcSendParams
-                    {
-                        TargetClientIds = new ulong[]{_controllerB.OwnerClientId}
-                    }
-                };
-                throwExtraItemsClientRpc(controllerReference, missingObjects.Select(g => (NetworkObjectReference)g.NetworkObject).ToArray(),clientRpcParams2);
             }
         }
 
