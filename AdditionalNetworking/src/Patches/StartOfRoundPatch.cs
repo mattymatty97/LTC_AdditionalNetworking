@@ -6,9 +6,9 @@ namespace AdditionalNetworking.Patches;
 [HarmonyPatch]
 internal class StartOfRoundPatch
 {
-    [HarmonyPostfix]
+    [HarmonyFinalizer]
     [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnClientDisconnect))]
-    private static void onClientDisconnect(ulong clientId)
+    private static void OnClientDisconnect(ulong clientId)
     {
         if (PlayerNetworking.Instance != null)
             PlayerNetworking.Instance.ValidClientIDs.Remove(clientId);

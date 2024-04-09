@@ -7,7 +7,7 @@ namespace AdditionalNetworking.Patches;
 [HarmonyPatch]
 internal class NutcrackerEnemyAiPatch
 {
-    [HarmonyPostfix]
+    [HarmonyFinalizer]
     [HarmonyPatch(typeof(NutcrackerEnemyAI), nameof(NutcrackerEnemyAI.ReloadGunClientRpc))]
     private static void OnReload(NutcrackerEnemyAI __instance)
     {
@@ -19,6 +19,6 @@ internal class NutcrackerEnemyAiPatch
         if (!__instance.IsOwner)
             return;
         if(ShotgunNetworking.Instance == null || !ShotgunNetworking.Instance.Enabled)
-            ShotgunNetworking.Instance.syncAmmoServerRpc(__instance.gun.NetworkObject, __instance.gun.shellsLoaded);
+            ShotgunNetworking.Instance.SyncAmmoServerRpc(__instance.gun.NetworkObject, __instance.gun.shellsLoaded);
     }
 }
