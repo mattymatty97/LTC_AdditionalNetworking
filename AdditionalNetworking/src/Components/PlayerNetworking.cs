@@ -99,8 +99,6 @@ namespace AdditionalNetworking.Components
                 }
             }
             
-            controllerB.SwitchToItemSlot(controllerB.currentItemSlot);
-            
             SyncInventoryClientRpc(controllerReference,valid.ToArray(), validIds.ToArray(), clientRpcParams);
             if (extra.Count > 0)
             {
@@ -151,6 +149,9 @@ namespace AdditionalNetworking.Components
                     //TODO: handle too many slots
                 }
             }
+            
+            if (!IsOwner)
+                controllerB.SwitchToItemSlot(controllerB.currentItemSlot);
         }
 
         /// <summary>
