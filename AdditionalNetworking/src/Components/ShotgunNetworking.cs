@@ -68,7 +68,7 @@ namespace AdditionalNetworking.Components
                     TargetClientIds = ValidClientIDs.ToArray()
                 }
             };
-            AdditionalNetworking.Log.LogDebug($"syncAmmoServerRpc was called for {shotgunReference.NetworkObjectId}! ammo: {ammoCount}");
+            AdditionalNetworking.Log.LogDebug($"{nameof(ShotgunNetworking)}.syncAmmoServerRpc was called for {shotgunReference.NetworkObjectId}! ammo: {ammoCount}");
             SyncAmmoClientRpc(shotgunReference, ammoCount, clientRpcParams);
         }
         
@@ -79,7 +79,9 @@ namespace AdditionalNetworking.Components
         private void SyncAmmoClientRpc(NetworkObjectReference shotgunReference, int ammoCount, ClientRpcParams clientRpcParams = default)
         {
             var shotgunItem = ((GameObject)shotgunReference).GetComponent<ShotgunItem>();
-            AdditionalNetworking.Log.LogDebug($"syncAmmoClientRpc was called for {shotgunReference.NetworkObjectId}! ammo: {ammoCount} was: {shotgunItem.shellsLoaded}");
+            AdditionalNetworking.Log.LogDebug($"{nameof(ShotgunNetworking)}.syncAmmoClientRpc was called for {shotgunReference.NetworkObjectId}! ammo: {ammoCount} was: {shotgunItem.shellsLoaded}");
+            if (shotgunItem.IsOwner)
+                return;
             shotgunItem.shellsLoaded = ammoCount;
         }
                 
@@ -96,7 +98,7 @@ namespace AdditionalNetworking.Components
                     TargetClientIds = ValidClientIDs.ToArray()
                 }
             };
-            AdditionalNetworking.Log.LogDebug($"syncSafetyServerRpc was called for {shotgunReference.NetworkObjectId}! safety:{(safety?"on":"off")}");
+            AdditionalNetworking.Log.LogDebug($"{nameof(ShotgunNetworking)}.syncSafetyServerRpc was called for {shotgunReference.NetworkObjectId}! safety:{(safety?"on":"off")}");
             SyncSafetyClientRpc(shotgunReference, safety, clientRpcParams);
         }
                         
@@ -107,7 +109,9 @@ namespace AdditionalNetworking.Components
         private void SyncSafetyClientRpc(NetworkObjectReference shotgunReference, bool safety, ClientRpcParams clientRpcParams = default)
         {
             var shotgunItem = ((GameObject)shotgunReference).GetComponent<ShotgunItem>();
-            AdditionalNetworking.Log.LogDebug($"syncSafetyClientRpc was called for {shotgunReference.NetworkObjectId}! safety:{(safety?"on":"off")} was: {(shotgunItem.safetyOn?"on":"off")}");
+            AdditionalNetworking.Log.LogDebug($"{nameof(ShotgunNetworking)}.syncSafetyClientRpc was called for {shotgunReference.NetworkObjectId}! safety:{(safety?"on":"off")} was: {(shotgunItem.safetyOn?"on":"off")}");
+            if (shotgunItem.IsOwner)
+                return;
             shotgunItem.safetyOn = safety;
         }
         
@@ -118,7 +122,7 @@ namespace AdditionalNetworking.Components
         [ServerRpc(RequireOwnership = false)]
         public void RequestSyncServerRpc(NetworkObjectReference shotgunReference, ServerRpcParams serverRpcParams = default)
         {
-            AdditionalNetworking.Log.LogDebug($"requestSyncServerRpc was called for {shotgunReference.NetworkObjectId} by {serverRpcParams.Receive.SenderClientId}!");
+            AdditionalNetworking.Log.LogDebug($"{nameof(ShotgunNetworking)}.requestSyncServerRpc was called for {shotgunReference.NetworkObjectId} by {serverRpcParams.Receive.SenderClientId}!");
             var shotgunItem = ((GameObject)shotgunReference).GetComponent<ShotgunItem>();
             ClientRpcParams clientRpcParams = new ClientRpcParams
             {

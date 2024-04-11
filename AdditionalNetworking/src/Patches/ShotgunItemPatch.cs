@@ -1,4 +1,5 @@
-﻿using AdditionalNetworking.Components;
+﻿using System.Collections.Generic;
+using AdditionalNetworking.Components;
 using HarmonyLib;
 
 namespace AdditionalNetworking.Patches
@@ -6,6 +7,10 @@ namespace AdditionalNetworking.Patches
     [HarmonyPatch]
     internal class ShotgunItemPatch
     {
+        
+        internal static readonly Dictionary<ShotgunItem, bool> DirtyAmmo = [];
+        internal static readonly Dictionary<ShotgunItem, bool> DirtySafety = [];
+        
         /// <summary>
         ///  Sync on Creation
         /// </summary>
@@ -35,7 +40,7 @@ namespace AdditionalNetworking.Patches
             if (start || !__instance.IsOwner)
                 return;
             
-            ShotgunNetworking.Instance.SyncAmmoServerRpc(__instance.NetworkObject, __instance.shellsLoaded);
+            DirtyAmmo[__instance] = true;
         }        
         
         /// <summary>
@@ -51,8 +56,7 @@ namespace AdditionalNetworking.Patches
             if (!__instance.IsOwner)
                 return;
 
-            ShotgunNetworking.Instance.SyncAmmoServerRpc(__instance.NetworkObject, __instance.shellsLoaded);
-
+            DirtyAmmo[__instance] = true;
         }
         
         /// <summary>
@@ -67,8 +71,52 @@ namespace AdditionalNetworking.Patches
             
             if (!__instance.IsOwner)
                 return;
+
+            DirtySafety[__instance] = true;
+        }
+        
+                
+                
+        /// <summary>
+        ///  broadcast changed data.
+        /// </summary>>
+        [HarmonyFinalizer]
+        [HarmonyPatch(typeof(ShotgunItem),nameof(ShotgunItem.LateUpdate))]
+        private static void OnLateUpdate(ShotgunItem __instance)
+        {
+            if (ShotgunNetworking.Instance == null || !ShotgunNetworking.Instance.Enabled)
+                return;
             
-            ShotgunNetworking.Instance.SyncSafetyServerRpc(__instance.NetworkObject, __instance.safetyOn);
+            if (DirtyAmmo.TryGetValue(__instance, out var value) && value)
+            {
+                DirtyAmmo[__instance] = false;
+                
+                if (__instance.IsOwner)
+                {
+                    ShotgunNetworking.Instance.SyncAmmoServerRpc(__instance.NetworkObject, __instance.shellsLoaded);
+                }
+            }
+            
+            if (DirtySafety.TryGetValue(__instance, out var value2) && value2)
+            {
+                DirtySafety[__instance] = false;
+                
+                if (__instance.IsOwner)
+                {
+                    ShotgunNetworking.Instance.SyncSafetyServerRpc(__instance.NetworkObject,__instance.safetyOn);
+                }
+            }
+        }
+        
+        /// <summary>
+        ///  clear entries on Destroy.
+        /// </summary>
+        [HarmonyFinalizer]
+        [HarmonyPatch(typeof(ShotgunItem),nameof(ShotgunItem.OnDestroy))]
+        private static void OnDestroy(ShotgunItem __instance)
+        {
+            DirtySafety.Remove(__instance);
+            DirtyAmmo.Remove(__instance);
         }
         
     }

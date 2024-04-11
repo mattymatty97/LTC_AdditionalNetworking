@@ -1,8 +1,8 @@
 {
   "name": "AdditionalNetworking",
-  "version_number": "2.3.5",
+  "version_number": "0.0.4",
   "website_url": "https://github.com/mattymatty97/LTC_AdditionalNetworking",
-  "description": "A collection of Patches for Lethal Company with Quality of life changes for the Host.",
+  "description": "Use more Explicit networking for stuff like selected slot and inventory.",
   "dependencies": [
     "BepInEx-BepInExPack-5.4.2100"
   ]

@@ -1,8 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using ES3Types;
 using GameNetcodeStuff;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
+
 // ReSharper disable MemberCanBeMadeStatic.Local
 
 namespace AdditionalNetworking.Components
@@ -73,7 +78,7 @@ namespace AdditionalNetworking.Components
                 }
             };
             
-            AdditionalNetworking.Log.LogDebug($"syncInventoryServerRpc was called for {controllerReference.NetworkObjectId}!");
+            AdditionalNetworking.Log.LogDebug($"{nameof(PlayerNetworking)}.syncInventoryServerRpc was called for {controllerReference.NetworkObjectId}!");
             var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
             //limit the list to the max slots of the server
             List<NetworkObjectReference> valid = new List<NetworkObjectReference>();
@@ -117,7 +122,7 @@ namespace AdditionalNetworking.Components
         [ClientRpc]
         private void SyncInventoryClientRpc(NetworkObjectReference controllerReference, NetworkObjectReference[] inventory, int[] slots, ClientRpcParams clientRpcParams = default)
         {
-            AdditionalNetworking.Log.LogDebug($"syncInventoryClientRpc was called for {controllerReference.NetworkObjectId}!");
+            AdditionalNetworking.Log.LogDebug($"{nameof(PlayerNetworking)}.syncInventoryClientRpc was called for {controllerReference.NetworkObjectId}!");
             var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
             if (!controllerB.IsOwner)
                 //flush the inventory
@@ -154,7 +159,7 @@ namespace AdditionalNetworking.Components
         [ClientRpc]
         private void ThrowExtraItemsClientRpc(NetworkObjectReference controllerReference, NetworkObjectReference[] objectsToThrow, ClientRpcParams clientRpcParams = default)
         {
-            AdditionalNetworking.Log.LogDebug($"throwExtraItemsClientRpc was called for {controllerReference.NetworkObjectId}!");
+            AdditionalNetworking.Log.LogDebug($"{nameof(PlayerNetworking)}.throwExtraItemsClientRpc was called for {controllerReference.NetworkObjectId}!");
             var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
             if (!controllerB.IsOwner)
                 return;
@@ -175,6 +180,14 @@ namespace AdditionalNetworking.Components
         [ServerRpc(RequireOwnership = false)]
         public void SyncSelectedSlotServerRpc(NetworkObjectReference controllerReference, int selectedSlot)
         {
+            var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
+            if (selectedSlot < 0 || selectedSlot >= controllerB.ItemSlots.Length)
+            {
+                AdditionalNetworking.Log.LogDebug(
+                    $"Invalid {nameof(PlayerNetworking)}.syncSelectedSlotServerRpc was called for {controllerReference.NetworkObjectId}, Ignored! slot:{selectedSlot}");
+                return;
+            }
+
             ClientRpcParams clientRpcParams = new ClientRpcParams
             {
                 Send = new ClientRpcSendParams
@@ -182,7 +195,7 @@ namespace AdditionalNetworking.Components
                     TargetClientIds = ValidClientIDs.ToArray()
                 }
             };
-            AdditionalNetworking.Log.LogDebug($"syncSelectedSlotServerRpc was called for {controllerReference.NetworkObjectId}! slot:{selectedSlot}");
+            AdditionalNetworking.Log.LogDebug($"{nameof(PlayerNetworking)}.syncSelectedSlotServerRpc was called for {controllerReference.NetworkObjectId}! slot:{selectedSlot}");
             SyncSelectedSlotClientRpc(controllerReference, selectedSlot, clientRpcParams);
         }        
                 
@@ -193,7 +206,7 @@ namespace AdditionalNetworking.Components
         private void SyncSelectedSlotClientRpc(NetworkObjectReference controllerReference, int selectedSlot, ClientRpcParams clientRpcParams = default)
         {
             var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
-            AdditionalNetworking.Log.LogDebug($"syncSelectedSlotClientRpc was called for {controllerReference.NetworkObjectId}! slot:{selectedSlot} was:{controllerB.currentItemSlot}");
+            AdditionalNetworking.Log.LogDebug($"{nameof(PlayerNetworking)}.syncSelectedSlotClientRpc was called for {controllerReference.NetworkObjectId}! slot:{selectedSlot} was:{controllerB.currentItemSlot}");
             if (controllerB.IsOwner)
                 return;
             
@@ -215,7 +228,7 @@ namespace AdditionalNetworking.Components
                     TargetClientIds = ValidClientIDs.ToArray()
                 }
             };
-            AdditionalNetworking.Log.LogDebug($"syncUsernameServerRpc was called for {controllerReference.NetworkObjectId}!");
+            AdditionalNetworking.Log.LogDebug($"{nameof(PlayerNetworking)}.syncUsernameServerRpc was called for {controllerReference.NetworkObjectId}!");
             SyncUsernameClientRpc(controllerReference, username, clientRpcParams);
         }
         
@@ -225,13 +238,21 @@ namespace AdditionalNetworking.Components
         [ClientRpc]
         public void SyncUsernameClientRpc(NetworkObjectReference controllerReference, string username, ClientRpcParams clientRpcParams = default)
         {
-            AdditionalNetworking.Log.LogDebug($"syncUsernameClientRpc was called for {controllerReference.NetworkObjectId}!");
+            AdditionalNetworking.Log.LogDebug($"{nameof(PlayerNetworking)}.syncUsernameClientRpc was called for {controllerReference.NetworkObjectId}!");
             var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
             if (controllerB.IsOwner)
                 return;
             controllerB.playerUsername = username;
             controllerB.usernameBillboardText.text = username;
-            //TODO update spectating boxes and radar
+            
+            StartOfRound.Instance.mapScreen.ChangeNameOfTargetTransform(controllerB.transform, username);
+
+            if (HUDManager.Instance.spectatingPlayerBoxes.ContainsValue(controllerB))
+            {
+                GameObject spectatorBox = HUDManager.Instance.spectatingPlayerBoxes.First(x => x.Value == controllerB)
+                    .Key.gameObject;
+                spectatorBox.GetComponentInChildren<TextMeshProUGUI>().text = username;
+            }
         }
         
         
@@ -241,7 +262,7 @@ namespace AdditionalNetworking.Components
         [ServerRpc(RequireOwnership = false)]
         public void RequestSyncUsernameServerRpc(NetworkObjectReference controllerReference, ServerRpcParams serverRpcParams = default)
         {
-            AdditionalNetworking.Log.LogDebug($"requestSyncUsernameServerRpc was called for {controllerReference.NetworkObjectId} by {serverRpcParams.Receive.SenderClientId}!");
+            AdditionalNetworking.Log.LogDebug($"{nameof(PlayerNetworking)}.requestSyncUsernameServerRpc was called for {controllerReference.NetworkObjectId} by {serverRpcParams.Receive.SenderClientId}!");
             var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
             //only send update if player is connected!
             if (controllerB.IsOwnedByServer)
