@@ -49,20 +49,23 @@ namespace AdditionalNetworking.Patches
         ///  broadcast changed data.
         /// </summary>>
         [HarmonyFinalizer]
-        [HarmonyPatch(typeof(BoomboxItem),nameof(BoomboxItem.LateUpdate))]
-        private static void OnLateUpdate(BoomboxItem __instance)
+        [HarmonyPatch(typeof(GrabbableObject),nameof(GrabbableObject.LateUpdate))]
+        private static void OnLateUpdate(GrabbableObject __instance)
         {
+            var boomboxItem = __instance as BoomboxItem;
+            if (boomboxItem == null)
+                return;
             if (BoomboxNetworking.Instance == null || !BoomboxNetworking.Instance.Enabled)
                 return;
             
-            if (DirtyStatus.TryGetValue(__instance, out var value) && value)
+            if (DirtyStatus.TryGetValue(boomboxItem, out var value) && value)
             {
-                DirtyStatus[__instance] = false;
+                DirtyStatus[boomboxItem] = false;
                 
                 if (__instance.IsOwner)
                 {
-                    var track = Array.IndexOf(__instance.musicAudios, __instance.boomboxAudio.clip);
-                    var state = __instance.isPlayingMusic;
+                    var track = Array.IndexOf(boomboxItem.musicAudios, boomboxItem.boomboxAudio.clip);
+                    var state = boomboxItem.isPlayingMusic;
                     BoomboxNetworking.Instance.SyncStateServerRpc(__instance.NetworkObject, state, track);
                 }
             }

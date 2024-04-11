@@ -81,29 +81,32 @@ namespace AdditionalNetworking.Patches
         ///  broadcast changed data.
         /// </summary>>
         [HarmonyFinalizer]
-        [HarmonyPatch(typeof(ShotgunItem),nameof(ShotgunItem.LateUpdate))]
-        private static void OnLateUpdate(ShotgunItem __instance)
+        [HarmonyPatch(typeof(GrabbableObject),nameof(GrabbableObject.LateUpdate))]
+        private static void OnLateUpdate(GrabbableObject __instance)
         {
+            var shotgunItem = __instance as ShotgunItem;
+            if ( shotgunItem == null)
+                return;
             if (ShotgunNetworking.Instance == null || !ShotgunNetworking.Instance.Enabled)
                 return;
             
-            if (DirtyAmmo.TryGetValue(__instance, out var value) && value)
+            if (DirtyAmmo.TryGetValue(shotgunItem, out var value) && value)
             {
-                DirtyAmmo[__instance] = false;
+                DirtyAmmo[shotgunItem] = false;
                 
                 if (__instance.IsOwner)
                 {
-                    ShotgunNetworking.Instance.SyncAmmoServerRpc(__instance.NetworkObject, __instance.shellsLoaded);
+                    ShotgunNetworking.Instance.SyncAmmoServerRpc(__instance.NetworkObject, shotgunItem.shellsLoaded);
                 }
             }
             
-            if (DirtySafety.TryGetValue(__instance, out var value2) && value2)
+            if (DirtySafety.TryGetValue(shotgunItem, out var value2) && value2)
             {
-                DirtySafety[__instance] = false;
+                DirtySafety[shotgunItem] = false;
                 
                 if (__instance.IsOwner)
                 {
-                    ShotgunNetworking.Instance.SyncSafetyServerRpc(__instance.NetworkObject,__instance.safetyOn);
+                    ShotgunNetworking.Instance.SyncSafetyServerRpc(__instance.NetworkObject,shotgunItem.safetyOn);
                 }
             }
         }
