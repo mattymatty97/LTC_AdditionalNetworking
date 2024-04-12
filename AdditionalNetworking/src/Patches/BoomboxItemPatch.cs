@@ -19,12 +19,12 @@ namespace AdditionalNetworking.Patches
         [HarmonyPatch(typeof(BoomboxItem),nameof(BoomboxItem.Start))]
         private static void OnStart(BoomboxItem __instance)
         {
-            if (ShotgunNetworking.Instance == null || !ShotgunNetworking.Instance.Enabled)
+            if (BoomboxNetworking.Instance == null || !BoomboxNetworking.Instance.Enabled)
                 return;
             
             if (!__instance.IsServer)
             {
-                ShotgunNetworking.Instance.RequestSyncServerRpc(__instance.NetworkObject);
+                BoomboxNetworking.Instance.RequestSyncServerRpc(__instance.NetworkObject);
             }
         }
         

@@ -19,7 +19,7 @@ namespace AdditionalNetworking
     {
         public const string GUID = "mattymatty.AdditionalNetworking";
         public const string NAME = "AdditionalNetworking";
-        public const string VERSION = "0.0.6";
+        public const string VERSION = "0.0.7";
 
         internal static ManualLogSource Log;
 
