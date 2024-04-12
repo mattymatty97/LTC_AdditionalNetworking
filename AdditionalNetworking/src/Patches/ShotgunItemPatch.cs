@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using AdditionalNetworking.Components;
 using HarmonyLib;
+using Unity.Netcode;
 
 namespace AdditionalNetworking.Patches
 {
@@ -115,11 +116,14 @@ namespace AdditionalNetworking.Patches
         ///  clear entries on Destroy.
         /// </summary>
         [HarmonyFinalizer]
-        [HarmonyPatch(typeof(ShotgunItem),nameof(ShotgunItem.OnDestroy))]
-        private static void OnDestroy(ShotgunItem __instance)
+        [HarmonyPatch(typeof(NetworkBehaviour),nameof(NetworkBehaviour.OnDestroy))]
+        private static void OnDestroy(NetworkBehaviour __instance)
         {
-            DirtySafety.Remove(__instance);
-            DirtyAmmo.Remove(__instance);
+            var shotgun = __instance as ShotgunItem;
+            if (shotgun == null)
+                return;
+            DirtySafety.Remove(shotgun);
+            DirtyAmmo.Remove(shotgun);
         }
         
     }

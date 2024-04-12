@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using AdditionalNetworking.Components;
 using HarmonyLib;
+using Unity.Netcode;
 
 namespace AdditionalNetworking.Patches
 {
@@ -76,10 +77,13 @@ namespace AdditionalNetworking.Patches
         ///  clear entries on Destroy.
         /// </summary>
         [HarmonyFinalizer]
-        [HarmonyPatch(typeof(BoomboxItem),nameof(BoomboxItem.OnDestroy))]
-        private static void OnDestroy(BoomboxItem __instance)
+        [HarmonyPatch(typeof(NetworkBehaviour),nameof(NetworkBehaviour.OnDestroy))]
+        private static void OnDestroy(NetworkBehaviour __instance)
         {
-            DirtyStatus.Remove(__instance);
+            var boombox = __instance as BoomboxItem;
+            if (boombox == null)
+                return;
+            DirtyStatus.Remove(boombox);
         }
         
     }
