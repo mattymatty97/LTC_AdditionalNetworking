@@ -1,11 +1,27 @@
 ﻿using AdditionalNetworking.Components;
 using HarmonyLib;
+using Unity.Netcode;
+using UnityEngine;
 
 namespace AdditionalNetworking.Patches;
 
 [HarmonyPatch]
 internal class StartOfRoundPatch
 {
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.Start))]
+    private static void OnStart(StartOfRound __instance)
+    {
+        if (!__instance.IsServer)
+            return;
+
+        AdditionalNetworking.Log.LogDebug("Here!");
+        var networkHandler = UnityEngine.Object.Instantiate<GameObject>(AdditionalNetworking.NetcodePrefab);
+        networkHandler.name = $"{AdditionalNetworking.NAME}";
+        var networkObject = networkHandler.GetComponent<NetworkObject>();
+        networkObject.Spawn();
+    }
+    
     [HarmonyFinalizer]
     [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnClientDisconnect))]
     private static void OnClientDisconnect(ulong clientId)

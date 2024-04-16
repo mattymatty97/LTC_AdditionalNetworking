@@ -19,10 +19,11 @@ namespace AdditionalNetworking
     {
         public const string GUID = "mattymatty.AdditionalNetworking";
         public const string NAME = "AdditionalNetworking";
-        public const string VERSION = "0.0.7";
+        public const string VERSION = "0.0.9";
 
         internal static ManualLogSource Log;
 
+        internal const uint NetworkObjectIdHash = 28111997;
         internal static GameObject NetcodeContainer { get; private set; }
         internal static GameObject NetcodePrefab { get; private set; }
             
@@ -62,8 +63,8 @@ namespace AdditionalNetworking
 				NetcodePrefab = new GameObject($"{NAME}Prefab");
 				NetcodePrefab.transform.parent = NetcodeContainer.transform;
 				var networkObject = NetcodePrefab.AddComponent<NetworkObject>();
-				networkObject.GlobalObjectIdHash = 28111997;
 				networkObject.AutoObjectParentSync = false;
+				networkObject.GlobalObjectIdHash = NetworkObjectIdHash;
 				NetcodePrefab.AddComponent<PlayerNetworking>();
 				NetcodePrefab.AddComponent<ShotgunNetworking>();
 				NetcodePrefab.AddComponent<BoomboxNetworking>();

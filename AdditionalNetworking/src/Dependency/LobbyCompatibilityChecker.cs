@@ -20,7 +20,7 @@ namespace AdditionalNetworking.Dependency
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static void Init()
         {
-            PluginHelper.RegisterPlugin(AdditionalNetworking.GUID, System.Version.Parse(AdditionalNetworking.VERSION), CompatibilityLevel.ClientOptional, VersionStrictness.Minor);
+            PluginHelper.RegisterPlugin(AdditionalNetworking.GUID, System.Version.Parse(AdditionalNetworking.VERSION), CompatibilityLevel.Everyone, VersionStrictness.Minor);
         }
         
     }
