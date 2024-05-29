@@ -17,11 +17,12 @@ Currently patched:
 - Boombox playing ( Owner will broadcast the explicit track id and playing status )
 - Boombox status ( Clients will request Boombox status from Host upon spawn )
 - Player Username ( Owner will sync the name of his playerObject )
+- Explicit position and rotation of Items ( Owner will Broadcast )
 
 Planned:
 - request scrap value on scan ( if value is missing )
 - Television sync ( status / play time )
-- Explicit position of items/players/enemies
+- Explicit position of players/enemies
 
 Planned but might not happen:
 - Vanilla compatibility ( allow vanilla clients to join )
