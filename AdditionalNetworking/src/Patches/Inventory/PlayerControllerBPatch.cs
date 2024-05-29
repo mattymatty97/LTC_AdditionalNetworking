@@ -4,7 +4,7 @@ using GameNetcodeStuff;
 using HarmonyLib;
 using Unity.Netcode;
 
-namespace AdditionalNetworking.Patches
+namespace AdditionalNetworking.Patches.Inventory
 {
     [HarmonyPatch]
     internal class PlayerControllerBPatch

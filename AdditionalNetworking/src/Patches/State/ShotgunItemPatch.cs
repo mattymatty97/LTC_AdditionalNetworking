@@ -3,7 +3,7 @@ using AdditionalNetworking.Components;
 using HarmonyLib;
 using Unity.Netcode;
 
-namespace AdditionalNetworking.Patches
+namespace AdditionalNetworking.Patches.State
 {
     [HarmonyPatch]
     internal class ShotgunItemPatch

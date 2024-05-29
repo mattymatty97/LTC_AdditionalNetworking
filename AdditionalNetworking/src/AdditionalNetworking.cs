@@ -10,6 +10,10 @@ using HarmonyLib;
 using Unity.Netcode;
 using UnityEngine;
 using Object = UnityEngine.Object;
+using CessilCellsCeaChells.CeaChore;
+
+[assembly: RequiresMethod(typeof(GrabbableObject), "Awake", typeof(void), [])]
+[assembly: RequiresMethod(typeof(EnemyAI), "Awake", typeof(void), [])]
 
 namespace AdditionalNetworking
 {
@@ -19,7 +23,7 @@ namespace AdditionalNetworking
     {
         public const string GUID = "mattymatty.AdditionalNetworking";
         public const string NAME = "AdditionalNetworking";
-        public const string VERSION = "0.0.9";
+        public const string VERSION = "1.0.1";
 
         internal static ManualLogSource Log;
 

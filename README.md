@@ -14,15 +14,20 @@ Currently patched:
 - Shotgun ammo ( Owner will broadcast the explicit ammo amount )
 - Shotgun safety ( Owner will broadcast the explicit safety status instead of toggle )
 - Shotgun status ( Clients will request shotgun status from Host upon spawn )
+- Boombox playing ( Owner will broadcast the explicit track id and playing status )
+- Boombox status ( Clients will request Boombox status from Host upon spawn )
 - Player Username ( Owner will sync the name of his playerObject )
 
 Planned:
 - request scrap value on scan ( if value is missing )
+- Television sync ( status / play time )
 - Explicit position of items/players/enemies
 
+Planned but might not happen:
+- Vanilla compatibility ( allow vanilla clients to join )
+
 ### **WARNING!**
-this mod will work only if both the host and the client have the mod  
-vanilla clients should be able to join but will not benefit from the mod
+this mod will work only if both the host and the client have the mod
 
 Installation
 ------------

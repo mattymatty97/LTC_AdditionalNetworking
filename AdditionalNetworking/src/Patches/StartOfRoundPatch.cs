@@ -1,4 +1,6 @@
 ﻿using AdditionalNetworking.Components;
+using AdditionalNetworking.Patches.Inventory;
+using AdditionalNetworking.Patches.State;
 using HarmonyLib;
 using Unity.Netcode;
 using UnityEngine;
