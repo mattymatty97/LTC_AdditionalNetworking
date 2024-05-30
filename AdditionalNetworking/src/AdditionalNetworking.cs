@@ -15,7 +15,7 @@ using CessilCellsCeaChells.CeaChore;
 [assembly: RequiresMethod(typeof(GrabbableObject), "Awake", typeof(void), [])]
 [assembly: RequiresMethod(typeof(EnemyAI), "Awake", typeof(void), [])]
 [assembly: RequiresMethod(typeof(NutcrackerEnemyAI), "FixedUpdate", typeof(void), [])]
-[assembly: RequiresField(typeof(NutcrackerEnemyAI), "oldTargetTorsoDegrees", typeof(int))]
+[assembly: RequiresField(typeof(NutcrackerEnemyAI), "oldTorsoDegrees", typeof(int))]
 
 namespace AdditionalNetworking
 {
@@ -25,7 +25,7 @@ namespace AdditionalNetworking
     {
         public const string GUID = "mattymatty.AdditionalNetworking";
         public const string NAME = "AdditionalNetworking";
-        public const string VERSION = "1.0.2";
+        public const string VERSION = "1.0.3";
 
         internal static ManualLogSource Log;
 
@@ -95,8 +95,19 @@ namespace AdditionalNetworking
             {
                 var config = plugin.Config;
                 //Initialize Configs
-                //ItemSync
-                
+                //Inventory
+                Inventory.SlotChange = config.Bind("Inventory", "SlotChange", true, "use explicit slot numbers when swapping slots");
+                Inventory.InventoryChange = config.Bind("Inventory", "InventoryChange", true, "broadcast the exact inventory order");
+                //Item state
+                State.Shotgun = config.Bind("Item state", "Shotgun", true, "use explicit values for ammo/safety instead of toggle states");
+                State.Boombox = config.Bind("Item state", "Boombox", true, "sync state and track id"); 
+                //Item state
+                Transforms.Grabbables = config.Bind("Transforms", "Grabbables", true, "enable patches for Grabbable position and rotation");
+                Transforms.EnemyAI = config.Bind("Transforms", "EnemyAI", true, "enable patches for EnemyAI position and rotation");
+                Transforms.NutcrackerAI = config.Bind("Transforms", "Nutcracker Torso", true, "enable extra networking to sync nutcracker torso");
+                Transforms.NutcrackerUpdatePeriod = config.Bind("Transforms", "Nutcracker Torso Period", 0.25f, "update cycle in seconds for the nutcracker torso");
+                //Misc
+                Misc.Username = config.Bind("Misc", "Username", true, "broadcast the local username once it is assigned to the player object");
                 //remove unused options
                 PropertyInfo orphanedEntriesProp = config.GetType().GetProperty("OrphanedEntries", BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -106,6 +117,31 @@ namespace AdditionalNetworking
                 config.Save(); // Save the config file
             }
             
+            internal static class Inventory
+            {
+	            internal static ConfigEntry<bool> SlotChange;
+	            internal static ConfigEntry<bool> InventoryChange;
+            }
+            
+            //Item state
+            internal static class State
+            {
+	            internal static ConfigEntry<bool> Shotgun;
+	            internal static ConfigEntry<bool> Boombox;
+            }
+            
+            internal static class Transforms
+            {
+	            internal static ConfigEntry<bool> Grabbables;
+	            internal static ConfigEntry<bool> EnemyAI;
+	            internal static ConfigEntry<bool> NutcrackerAI;
+	            internal static ConfigEntry<float> NutcrackerUpdatePeriod;
+            }
+            
+            internal static class Misc
+            {
+	            internal static ConfigEntry<bool> Username;
+            }
         }
 
     }

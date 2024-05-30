@@ -13,6 +13,9 @@ internal class GrabbablePositionPatch
     [HarmonyPatch(typeof(GrabbableObject), "Awake")]
     private static void OnAwake(GrabbableObject __instance)
     {
+        if (!AdditionalNetworking.PluginConfig.Transforms.Grabbables.Value)
+            return;
+        
         if (!__instance.TryGetComponent<ClientNetworkTransform>(out _))
         {
             __instance.gameObject.AddComponent<ClientNetworkTransform>();
@@ -24,7 +27,9 @@ internal class GrabbablePositionPatch
     private static IEnumerable<CodeInstruction> PatchFallWithCurve(IEnumerable<CodeInstruction> instructions,
         ILGenerator generator)
     {
-
+        if (!AdditionalNetworking.PluginConfig.Transforms.Grabbables.Value)
+            return instructions;
+        
         var ownerMethod = typeof(NetworkBehaviour).GetProperty(nameof(NetworkBehaviour.IsOwner))!.GetMethod;
         return new CodeMatcher(instructions, generator)
             .End()
@@ -46,6 +51,8 @@ internal class GrabbablePositionPatch
     private static IEnumerable<CodeInstruction> PatchUpdate(IEnumerable<CodeInstruction> instructions,
         ILGenerator generator)
     {
+        if (!AdditionalNetworking.PluginConfig.Transforms.Grabbables.Value)
+            return instructions;
 
         var fieldInfo = typeof(GrabbableObject).GetField(nameof(GrabbableObject.reachedFloorTarget));
         return new CodeMatcher(instructions, generator)

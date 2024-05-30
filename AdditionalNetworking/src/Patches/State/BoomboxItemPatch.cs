@@ -19,6 +19,9 @@ namespace AdditionalNetworking.Patches.State
         [HarmonyPatch(typeof(BoomboxItem),nameof(BoomboxItem.Start))]
         private static void OnStart(BoomboxItem __instance)
         {
+            if (!AdditionalNetworking.PluginConfig.State.Boombox.Value)
+                return;
+            
             if (BoomboxNetworking.Instance == null || !BoomboxNetworking.Instance.Enabled)
                 return;
             
@@ -35,6 +38,9 @@ namespace AdditionalNetworking.Patches.State
         [HarmonyPatch(typeof(BoomboxItem),nameof(BoomboxItem.StartMusic))]
         private static void OnMusicChange(BoomboxItem __instance)
         {
+            if (!AdditionalNetworking.PluginConfig.State.Boombox.Value)
+                return;
+            
             if (BoomboxNetworking.Instance == null || !BoomboxNetworking.Instance.Enabled)
                 return;
 

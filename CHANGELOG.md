@@ -1,4 +1,7 @@
-### v1.0.1
+### v1.0.3
+- Added Config options
+
+### v1.0.2
 - Add Enemy transform sync
 - Add Nutcracker torso rotation sync
 - only compute Nutcracker rotation on Owner

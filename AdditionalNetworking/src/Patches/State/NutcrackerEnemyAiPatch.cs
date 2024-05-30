@@ -18,6 +18,10 @@ internal class NutcrackerEnemyAiPatch
             return;
         if (!__instance.IsOwner)
             return;
+        
+        if (!AdditionalNetworking.PluginConfig.State.Shotgun.Value)
+            return;
+        
         if(ShotgunNetworking.Instance == null || !ShotgunNetworking.Instance.Enabled)
             ShotgunNetworking.Instance.SyncAmmoServerRpc(__instance.gun.NetworkObject, __instance.gun.shellsLoaded);
     }

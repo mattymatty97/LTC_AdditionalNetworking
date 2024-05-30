@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using AdditionalNetworking.Components;
 using HarmonyLib;
 using Unity.Netcode;
+using UnityEngine;
 
 namespace AdditionalNetworking.Patches.Transform;
 
@@ -15,6 +17,9 @@ internal class EnemyAIPositionPatch
     [HarmonyPatch(typeof(EnemyAI), "Awake")]
     private static void OnAwake(EnemyAI __instance)
     {
+        if (!AdditionalNetworking.PluginConfig.Transforms.EnemyAI.Value)
+            return;
+        
         if (!__instance.TryGetComponent<ClientNetworkTransform>(out _))
         {
             __instance.gameObject.AddComponent<ClientNetworkTransform>();
@@ -25,6 +30,9 @@ internal class EnemyAIPositionPatch
     [HarmonyPatch(typeof(EnemyAI), nameof(EnemyAI.SyncPositionToClients))]
     private static bool DoNotSyncPosition(EnemyAI __instance)
     {
+        if (!AdditionalNetworking.PluginConfig.Transforms.EnemyAI.Value)
+            return true;
+        
         return false;
     }
     
@@ -34,6 +42,8 @@ internal class EnemyAIPositionPatch
     private static IEnumerable<CodeInstruction> PatchUpdate(IEnumerable<CodeInstruction> instructions,
         ILGenerator generator)
     {
+        if (!AdditionalNetworking.PluginConfig.Transforms.EnemyAI.Value)
+            return instructions;
 
         var fldInfo = typeof(NetworkBehaviour).GetProperty(nameof(NetworkBehaviour.IsServer))!.GetMethod;
         var serverRpc = typeof(EnemyAI).GetMethod(nameof(EnemyAI.UpdateEnemyRotationServerRpc));
@@ -54,21 +64,35 @@ internal class EnemyAIPositionPatch
     [HarmonyPatch]
     internal static class NutcrackerPatches
     {
-        private static readonly FieldInfo OldTargetTorsoDegrees = typeof(NutcrackerEnemyAI).GetField("oldTargetTorsoDegrees", BindingFlags.Instance | BindingFlags.NonPublic);
-    
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(NutcrackerEnemyAI), "FixedUpdate")]
-        private static void BeforeNutcrackerUpdate(NutcrackerEnemyAI __instance)
-        {
-            if ((int)OldTargetTorsoDegrees.GetValue(__instance) != __instance.targetTorsoDegrees && __instance.IsOwner)
-            {
-                if (NutcrackerNetworking.Instance.Enabled)
-                {
-                    NutcrackerNetworking.Instance.SyncTorsoServerRpc(__instance.NetworkObject,__instance.targetTorsoDegrees);
-                }
-            }
+        private static readonly FieldInfo OldTargetTorsoDegrees = typeof(NutcrackerEnemyAI).GetField("oldTorsoDegrees", BindingFlags.Instance | BindingFlags.NonPublic);
 
-            OldTargetTorsoDegrees.SetValue(__instance, __instance.targetTorsoDegrees);
+
+        // ReSharper disable Unity.PerformanceAnalysis
+        private static IEnumerator DoTorsoSync(NutcrackerEnemyAI nutcrackerObject)
+        {
+            while (!nutcrackerObject.isEnemyDead)
+            {
+                if ((int)OldTargetTorsoDegrees.GetValue(nutcrackerObject) != nutcrackerObject.targetTorsoDegrees && nutcrackerObject.IsOwner)
+                {
+                    if (NutcrackerNetworking.Instance.Enabled)
+                    {
+                        NutcrackerNetworking.Instance.SyncTorsoServerRpc(nutcrackerObject.NetworkObject,nutcrackerObject.targetTorsoDegrees);
+                    }
+                }
+
+                OldTargetTorsoDegrees.SetValue(nutcrackerObject, nutcrackerObject.targetTorsoDegrees);
+                yield return new WaitForSeconds(AdditionalNetworking.PluginConfig.Transforms.NutcrackerUpdatePeriod.Value);
+            }
+        } 
+        
+        [HarmonyFinalizer]
+        [HarmonyPatch(typeof(NutcrackerEnemyAI), nameof(NutcrackerEnemyAI.Start))]
+        private static void AfterNutcrackerSpawn(NutcrackerEnemyAI __instance)
+        {
+            if (!AdditionalNetworking.PluginConfig.Transforms.NutcrackerAI.Value)
+                return;
+            
+            __instance.StartCoroutine(DoTorsoSync(__instance));
         }
         
         
@@ -77,6 +101,8 @@ internal class EnemyAIPositionPatch
         private static IEnumerable<CodeInstruction> PatchSetTargetDegreesToPosition(IEnumerable<CodeInstruction> instructions,
             ILGenerator generator)
         {
+            if (!AdditionalNetworking.PluginConfig.Transforms.NutcrackerAI.Value)
+                return instructions;
 
             var ownerMethod = typeof(NetworkBehaviour).GetProperty(nameof(NetworkBehaviour.IsOwner))!.GetMethod;
             var fieldInfo = typeof(NutcrackerEnemyAI).GetField(nameof(NutcrackerEnemyAI.torsoTurnSpeed));
