@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 using System.Reflection.Emit;
 using AdditionalNetworking.Components;
 using HarmonyLib;
@@ -9,7 +10,7 @@ namespace AdditionalNetworking.Patches.Transform;
 [HarmonyPatch]
 internal class EnemyAIPositionPatch
 {
-    /*
+    
     [HarmonyPrefix]
     [HarmonyPatch(typeof(EnemyAI), "Awake")]
     private static void OnAwake(EnemyAI __instance)
@@ -48,5 +49,52 @@ internal class EnemyAIPositionPatch
                 new CodeMatch(OpCodes.Call, fldInfo))
             .Insert(new CodeInstruction(OpCodes.Br, ending))
             .Instructions();
-    }*/
+    }
+
+    [HarmonyPatch]
+    internal static class NutcrackerPatches
+    {
+        private static readonly FieldInfo OldTargetTorsoDegrees = typeof(NutcrackerEnemyAI).GetField("oldTargetTorsoDegrees", BindingFlags.Instance | BindingFlags.NonPublic);
+    
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(NutcrackerEnemyAI), "FixedUpdate")]
+        private static void BeforeNutcrackerUpdate(NutcrackerEnemyAI __instance)
+        {
+            if ((int)OldTargetTorsoDegrees.GetValue(__instance) != __instance.targetTorsoDegrees && __instance.IsOwner)
+            {
+                if (NutcrackerNetworking.Instance.Enabled)
+                {
+                    NutcrackerNetworking.Instance.SyncTorsoServerRpc(__instance.NetworkObject,__instance.targetTorsoDegrees);
+                }
+            }
+
+            OldTargetTorsoDegrees.SetValue(__instance, __instance.targetTorsoDegrees);
+        }
+        
+        
+        [HarmonyTranspiler]
+        [HarmonyPatch(typeof(NutcrackerEnemyAI), nameof(NutcrackerEnemyAI.SetTargetDegreesToPosition))]
+        private static IEnumerable<CodeInstruction> PatchSetTargetDegreesToPosition(IEnumerable<CodeInstruction> instructions,
+            ILGenerator generator)
+        {
+
+            var ownerMethod = typeof(NetworkBehaviour).GetProperty(nameof(NetworkBehaviour.IsOwner))!.GetMethod;
+            var fieldInfo = typeof(NutcrackerEnemyAI).GetField(nameof(NutcrackerEnemyAI.torsoTurnSpeed));
+            return new CodeMatcher(instructions, generator)
+                .End()
+                .MatchBack(false, 
+                    new CodeMatch(OpCodes.Ldarg_0), 
+                    new CodeMatch(OpCodes.Ldc_R4),
+                    new CodeMatch(OpCodes.Stfld, fieldInfo))
+                .CreateLabel(out var endingLabel)
+                .Start()
+                .Insert(
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new CodeInstruction(OpCodes.Call, ownerMethod),
+                    new CodeInstruction(OpCodes.Brfalse, endingLabel)
+                )
+                .Instructions();
+        }    
+    }
+    
 }

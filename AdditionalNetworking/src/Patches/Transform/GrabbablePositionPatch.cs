@@ -51,7 +51,10 @@ internal class GrabbablePositionPatch
         return new CodeMatcher(instructions, generator)
             .End()
             .CreateLabel(out var endingLabel)
-            .MatchBack(true, new CodeMatch(OpCodes.Ldarg_0), new CodeMatch(OpCodes.Ldfld, fieldInfo), new CodeMatch(OpCodes.Brtrue))
+            .MatchBack(true, 
+                new CodeMatch(OpCodes.Ldarg_0), 
+                new CodeMatch(OpCodes.Ldfld, fieldInfo), 
+                new CodeMatch(OpCodes.Brtrue))
             .SetOperandAndAdvance(endingLabel)
             .Instructions();
     }

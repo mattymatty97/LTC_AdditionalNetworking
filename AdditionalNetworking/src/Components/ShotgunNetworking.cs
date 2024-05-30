@@ -60,7 +60,7 @@ namespace AdditionalNetworking.Components
         /// </summary>
         [ServerRpc(RequireOwnership = false)]
         public void SyncAmmoServerRpc(NetworkObjectReference shotgunReference, int ammoCount)
-        {            
+        {
             ClientRpcParams clientRpcParams = new ClientRpcParams
             {
                 Send = new ClientRpcSendParams
