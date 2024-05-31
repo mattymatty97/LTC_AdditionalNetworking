@@ -25,7 +25,7 @@ namespace AdditionalNetworking
     {
         public const string GUID = "mattymatty.AdditionalNetworking";
         public const string NAME = "AdditionalNetworking";
-        public const string VERSION = "1.0.3";
+        public const string VERSION = "1.0.5";
 
         internal static ManualLogSource Log;
 
@@ -75,6 +75,7 @@ namespace AdditionalNetworking
 				NetcodePrefab.AddComponent<ShotgunNetworking>();
 				NetcodePrefab.AddComponent<BoomboxNetworking>();
 				NetcodePrefab.AddComponent<NutcrackerNetworking>();
+				NetcodePrefab.AddComponent<ParentNetworking>();
 				
 				Log.LogInfo("Patching Methods");
 				var harmony = new Harmony(GUID);

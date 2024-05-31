@@ -179,7 +179,7 @@ namespace AdditionalNetworking.Components
         ///  broadcast new held item.
         /// </summary>
         [ServerRpc(RequireOwnership = false)]
-        public void SyncSelectedSlotServerRpc(NetworkObjectReference controllerReference, int selectedSlot)
+        public void SyncSelectedSlotServerRpc(NetworkObjectReference controllerReference, int selectedSlot, ServerRpcParams serverRpcParams = default)
         {
             var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
             if (selectedSlot < 0 || selectedSlot >= controllerB.ItemSlots.Length)
@@ -220,7 +220,7 @@ namespace AdditionalNetworking.Components
         ///  ( de-sync typically in lateJoin cases )
         /// </summary>
         [ServerRpc(RequireOwnership = false)]
-        public void SyncUsernameServerRpc(NetworkObjectReference controllerReference, string username)
+        public void SyncUsernameServerRpc(NetworkObjectReference controllerReference, string username, ServerRpcParams serverRpcParams = default)
         {            
             ClientRpcParams clientRpcParams = new ClientRpcParams
             {

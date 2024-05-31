@@ -59,7 +59,7 @@ namespace AdditionalNetworking.Components
         ///  broadcast new ammo count.
         /// </summary>
         [ServerRpc(RequireOwnership = false)]
-        public void SyncAmmoServerRpc(NetworkObjectReference shotgunReference, int ammoCount)
+        public void SyncAmmoServerRpc(NetworkObjectReference shotgunReference, int ammoCount, ServerRpcParams serverRpcParams = default)
         {
             ClientRpcParams clientRpcParams = new ClientRpcParams
             {
@@ -89,7 +89,7 @@ namespace AdditionalNetworking.Components
         ///  broadcast new safety status.
         /// </summary>
         [ServerRpc(RequireOwnership = false)]
-        public void SyncSafetyServerRpc(NetworkObjectReference shotgunReference, bool safety)
+        public void SyncSafetyServerRpc(NetworkObjectReference shotgunReference, bool safety, ServerRpcParams serverRpcParams = default)
         {
             ClientRpcParams clientRpcParams = new ClientRpcParams
             {

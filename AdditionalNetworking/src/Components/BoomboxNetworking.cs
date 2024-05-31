@@ -60,7 +60,7 @@ namespace AdditionalNetworking.Components
         ///  broadcast new boombox state.
         /// </summary>
         [ServerRpc(RequireOwnership = false)]
-        public void SyncStateServerRpc(NetworkObjectReference boomboxReference, bool playing, int track)
+        public void SyncStateServerRpc(NetworkObjectReference boomboxReference, bool playing, int track, ServerRpcParams serverRpcParams = default)
         {            
             ClientRpcParams clientRpcParams = new ClientRpcParams
             {

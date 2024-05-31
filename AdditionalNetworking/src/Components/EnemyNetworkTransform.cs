@@ -2,7 +2,7 @@
 
 namespace AdditionalNetworking.Components;
 
-public class ClientNetworkTransform: NetworkTransform
+public class EnemyNetworkTransform: NetworkTransform
 {
     public override void Awake()
     {

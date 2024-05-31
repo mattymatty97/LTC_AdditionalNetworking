@@ -36,6 +36,8 @@ internal class StartOfRoundPatch
             BoomboxNetworking.Instance.ValidClientIDs.Remove(clientId);
         if (NutcrackerNetworking.Instance != null)
             NutcrackerNetworking.Instance.ValidClientIDs.Remove(clientId);
+        if (ParentNetworking.Instance != null)
+            ParentNetworking.Instance.ValidClientIDs.Remove(clientId);
     }
     
     [HarmonyFinalizer]

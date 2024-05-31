@@ -20,9 +20,9 @@ internal class EnemyAIPositionPatch
         if (!AdditionalNetworking.PluginConfig.Transforms.EnemyAI.Value)
             return;
         
-        if (!__instance.TryGetComponent<ClientNetworkTransform>(out _))
+        if (!__instance.TryGetComponent<EnemyNetworkTransform>(out _))
         {
-            __instance.gameObject.AddComponent<ClientNetworkTransform>();
+            __instance.gameObject.AddComponent<EnemyNetworkTransform>();
         }
     }
     
@@ -74,7 +74,7 @@ internal class EnemyAIPositionPatch
             {
                 if ((int)OldTargetTorsoDegrees.GetValue(nutcrackerObject) != nutcrackerObject.targetTorsoDegrees && nutcrackerObject.IsOwner)
                 {
-                    if (NutcrackerNetworking.Instance.Enabled)
+                    if (NutcrackerNetworking.Instance != null && NutcrackerNetworking.Instance.Enabled)
                     {
                         NutcrackerNetworking.Instance.SyncTorsoServerRpc(nutcrackerObject.NetworkObject,nutcrackerObject.targetTorsoDegrees);
                     }

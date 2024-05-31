@@ -1,3 +1,11 @@
+### v1.0.5
+- re-enable clientside object position
+- only sync item rotation instead of position
+- split NetworkTransforms for Items and Enemies
+
+### v1.0.4
+- change Network Transform to World Space
+
 ### v1.0.3
 - Added Config options
 
