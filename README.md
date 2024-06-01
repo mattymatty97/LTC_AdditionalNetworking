@@ -17,9 +17,7 @@ Currently patched:
 - Boombox playing ( Owner will broadcast the explicit track id and playing status )
 - Boombox status ( Clients will request Boombox status from Host upon spawn )
 - Player Username ( Owner will sync the name of his playerObject )
-- Explicit position and rotation of Items ( Owner will Broadcast )
-- Compute item fall only on Owner side
-- Force item to floor only once
+- Explicit rotation of Items ( Owner will Broadcast )
 - Explicit position and rotation of Enemies ( Owner will Broadcast )
 - Explicit torso rotation of Nutcrackers ( Owner will Broadcast )
 - Compute torso rotation of Nutcrackers only on Owner side

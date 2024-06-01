@@ -1,3 +1,8 @@
+### v1.0.6
+- Remove position handling from Grabables
+- Remove Parent syncing
+- Grabbables now only sync Rotation
+
 ### v1.0.5
 - revert v1.0.4
 - add Networking to sync object parents
