@@ -10,8 +10,11 @@ public class GrabbableNetworkTransform: NetworkTransform
         SyncScaleX = false;
         SyncScaleY = false;
         SyncScaleZ = false;
+        SyncPositionX = false;
+        SyncPositionY = false;
+        SyncPositionZ = false;
         UseHalfFloatPrecision = true;
-        InLocalSpace = true;
+        InLocalSpace = false;
         
     }
 
