@@ -15,7 +15,6 @@ using CessilCellsCeaChells.CeaChore;
 [assembly: RequiresMethod(typeof(GrabbableObject), "Awake", typeof(void), [])]
 [assembly: RequiresMethod(typeof(EnemyAI), "Awake", typeof(void), [])]
 [assembly: RequiresMethod(typeof(NutcrackerEnemyAI), "FixedUpdate", typeof(void), [])]
-[assembly: RequiresField(typeof(NutcrackerEnemyAI), "oldTorsoDegrees", typeof(int))]
 
 namespace AdditionalNetworking
 {
@@ -25,7 +24,7 @@ namespace AdditionalNetworking
     {
         public const string GUID = "mattymatty.AdditionalNetworking";
         public const string NAME = "AdditionalNetworking";
-        public const string VERSION = "1.0.6";
+        public const string VERSION = "1.0.7";
 
         internal static ManualLogSource Log;
 
@@ -74,7 +73,6 @@ namespace AdditionalNetworking
 				NetcodePrefab.AddComponent<PlayerNetworking>();
 				NetcodePrefab.AddComponent<ShotgunNetworking>();
 				NetcodePrefab.AddComponent<BoomboxNetworking>();
-				NetcodePrefab.AddComponent<NutcrackerNetworking>();
 				
 				Log.LogInfo("Patching Methods");
 				var harmony = new Harmony(GUID);
@@ -103,9 +101,6 @@ namespace AdditionalNetworking
                 State.Boombox = config.Bind("Item state", "Boombox", true, "sync state and track id"); 
                 //Item state
                 Transforms.Grabbables = config.Bind("Transforms", "Grabbables", true, "enable patches for Grabbable position and rotation");
-                Transforms.EnemyAI = config.Bind("Transforms", "EnemyAI", true, "enable patches for EnemyAI position and rotation");
-                Transforms.NutcrackerAI = config.Bind("Transforms", "Nutcracker Torso", true, "enable extra networking to sync nutcracker torso");
-                Transforms.NutcrackerUpdatePeriod = config.Bind("Transforms", "Nutcracker Torso Period", 0.25f, "update cycle in seconds for the nutcracker torso");
                 //Misc
                 Misc.Username = config.Bind("Misc", "Username", true, "broadcast the local username once it is assigned to the player object");
                 //remove unused options
@@ -133,9 +128,6 @@ namespace AdditionalNetworking
             internal static class Transforms
             {
 	            internal static ConfigEntry<bool> Grabbables;
-	            internal static ConfigEntry<bool> EnemyAI;
-	            internal static ConfigEntry<bool> NutcrackerAI;
-	            internal static ConfigEntry<float> NutcrackerUpdatePeriod;
             }
             
             internal static class Misc

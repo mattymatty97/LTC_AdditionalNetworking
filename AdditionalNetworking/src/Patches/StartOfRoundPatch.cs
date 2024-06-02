@@ -34,8 +34,6 @@ internal class StartOfRoundPatch
             ShotgunNetworking.Instance.ValidClientIDs.Remove(clientId);
         if (BoomboxNetworking.Instance != null)
             BoomboxNetworking.Instance.ValidClientIDs.Remove(clientId);
-        if (NutcrackerNetworking.Instance != null)
-            NutcrackerNetworking.Instance.ValidClientIDs.Remove(clientId);
     }
     
     [HarmonyFinalizer]

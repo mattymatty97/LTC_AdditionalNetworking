@@ -18,14 +18,10 @@ Currently patched:
 - Boombox status ( Clients will request Boombox status from Host upon spawn )
 - Player Username ( Owner will sync the name of his playerObject )
 - Explicit rotation of Items ( Owner will Broadcast )
-- Explicit position and rotation of Enemies ( Owner will Broadcast )
-- Explicit torso rotation of Nutcrackers ( Owner will Broadcast )
-- Compute torso rotation of Nutcrackers only on Owner side
 
 Planned:
 - request scrap value on scan ( if value is missing )
 - Television sync ( status / play time )
-- Explicit position of players
 
 Planned but might not happen:
 - Vanilla compatibility ( allow vanilla clients to join )

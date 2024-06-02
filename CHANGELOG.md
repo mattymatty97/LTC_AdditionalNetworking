@@ -1,3 +1,6 @@
+### v1.0.7
+- Remove Enemy syncing
+
 ### v1.0.6
 - Remove position handling from Grabables
 - Remove Parent syncing
