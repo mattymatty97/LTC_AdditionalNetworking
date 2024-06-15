@@ -34,6 +34,8 @@ internal class StartOfRoundPatch
             ShotgunNetworking.Instance.ValidClientIDs.Remove(clientId);
         if (BoomboxNetworking.Instance != null)
             BoomboxNetworking.Instance.ValidClientIDs.Remove(clientId);
+        if (GrabbableNetworking.Instance != null)
+            GrabbableNetworking.Instance.ValidClientIDs.Remove(clientId);
     }
     
     [HarmonyFinalizer]
@@ -44,5 +46,7 @@ internal class StartOfRoundPatch
         PlayerControllerBPatch.DirtySlots.Clear();
         ShotgunItemPatch.DirtyAmmo.Clear();
         ShotgunItemPatch.DirtySafety.Clear();
+        BoomboxItemPatch.DirtyStatus.Clear();
+        GrabbableObjectPatch.RequestedValues.Clear();
     }
 }

@@ -1,3 +1,7 @@
+### v1.0.8
+- Rollback to Stable
+- Added request of 0-value scrap
+
 ### v1.0.7
 - Remove Enemy syncing
 

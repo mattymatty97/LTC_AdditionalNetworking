@@ -13,8 +13,6 @@ using Object = UnityEngine.Object;
 using CessilCellsCeaChells.CeaChore;
 
 [assembly: RequiresMethod(typeof(GrabbableObject), "Awake", typeof(void), [])]
-[assembly: RequiresMethod(typeof(EnemyAI), "Awake", typeof(void), [])]
-[assembly: RequiresMethod(typeof(NutcrackerEnemyAI), "FixedUpdate", typeof(void), [])]
 
 namespace AdditionalNetworking
 {
@@ -24,7 +22,7 @@ namespace AdditionalNetworking
     {
         public const string GUID = "mattymatty.AdditionalNetworking";
         public const string NAME = "AdditionalNetworking";
-        public const string VERSION = "1.0.7";
+        public const string VERSION = "1.0.8";
 
         internal static ManualLogSource Log;
 
@@ -73,6 +71,7 @@ namespace AdditionalNetworking
 				NetcodePrefab.AddComponent<PlayerNetworking>();
 				NetcodePrefab.AddComponent<ShotgunNetworking>();
 				NetcodePrefab.AddComponent<BoomboxNetworking>();
+				NetcodePrefab.AddComponent<GrabbableNetworking>();
 				
 				Log.LogInfo("Patching Methods");
 				var harmony = new Harmony(GUID);

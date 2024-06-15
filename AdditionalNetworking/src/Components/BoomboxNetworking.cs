@@ -111,13 +111,13 @@ namespace AdditionalNetworking.Components
     
         
         /// <summary>
-        ///  request server values for ammo and safety.
+        ///  request server boombox state.
         /// </summary>
         [ServerRpc(RequireOwnership = false)]
-        public void RequestSyncServerRpc(NetworkObjectReference shotgunReference, ServerRpcParams serverRpcParams = default)
+        public void RequestSyncServerRpc(NetworkObjectReference boomboxReference, ServerRpcParams serverRpcParams = default)
         {
-            AdditionalNetworking.Log.LogDebug($"requestSyncServerRpc was called for {shotgunReference.NetworkObjectId} by {serverRpcParams.Receive.SenderClientId}!");
-            var boomboxItem = ((GameObject)shotgunReference).GetComponent<BoomboxItem>();
+            AdditionalNetworking.Log.LogDebug($"{nameof(BoomboxNetworking)}.requestSyncServerRpc was called for {boomboxReference.NetworkObjectId} by {serverRpcParams.Receive.SenderClientId}!");
+            var boomboxItem = ((GameObject)boomboxReference).GetComponent<BoomboxItem>();
             ClientRpcParams clientRpcParams = new ClientRpcParams
             {
                 Send = new ClientRpcSendParams
@@ -127,7 +127,7 @@ namespace AdditionalNetworking.Components
             };
             var track = Array.IndexOf(boomboxItem.musicAudios, boomboxItem.boomboxAudio.clip);
             var state = boomboxItem.isPlayingMusic;
-            SyncStateClientRpc(shotgunReference, state, track, clientRpcParams);
+            SyncStateClientRpc(boomboxReference, state, track, clientRpcParams);
         }
         
     }
