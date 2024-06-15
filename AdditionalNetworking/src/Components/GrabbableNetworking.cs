@@ -92,7 +92,7 @@ namespace AdditionalNetworking.Components
                     TargetClientIds = new ulong[] { serverRpcParams.Receive.SenderClientId }
                 }
             };
-            SyncValuesClientRpc(grabbableReference, grabbableObject.scrapValue, grabbableObject.GetItemDataToSave(), clientRpcParams);
+            SyncValuesClientRpc(grabbableReference, grabbableObject.scrapValue, grabbableObject.itemProperties.saveItemVariable?grabbableObject.GetItemDataToSave():0, clientRpcParams);
         }
         
     }

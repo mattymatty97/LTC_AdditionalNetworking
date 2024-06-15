@@ -4,14 +4,13 @@
         <RootNamespace>AdditionalNetworking</RootNamespace>
         <AssemblyName>AdditionalNetworking</AssemblyName>
         <Product>Additional Networking</Product>
-        <Version>1.0.8</Version>
+        <Version>1.0.10</Version>
         <TargetFramework>netstandard2.1</TargetFramework>
         <LangVersion>Latest</LangVersion>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="TeamBMX.LobbyCompatibility" Version="1.0.1"/>
         <PackageReference Include="BepInEx.Core" Version="5.4.21"/>
-        <PackageReference Include="CessilCellsCeaChells" Version="0.3.5"/>
     </ItemGroup>
     <!-- Defining the reference files that have to be publicized. -->
     <ItemGroup>

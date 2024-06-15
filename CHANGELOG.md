@@ -1,3 +1,6 @@
+### v1.0.9
+- Forgot to remove Ceccil dependent code
+
 ### v1.0.8
 - Rollback to Stable
 - Added request of 0-value scrap

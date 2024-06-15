@@ -10,9 +10,6 @@ using HarmonyLib;
 using Unity.Netcode;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using CessilCellsCeaChells.CeaChore;
-
-[assembly: RequiresMethod(typeof(GrabbableObject), "Awake", typeof(void), [])]
 
 namespace AdditionalNetworking
 {
@@ -22,7 +19,7 @@ namespace AdditionalNetworking
     {
         public const string GUID = "mattymatty.AdditionalNetworking";
         public const string NAME = "AdditionalNetworking";
-        public const string VERSION = "1.0.8";
+        public const string VERSION = "1.0.10";
 
         internal static ManualLogSource Log;
 
@@ -98,8 +95,6 @@ namespace AdditionalNetworking
                 //Item state
                 State.Shotgun = config.Bind("Item state", "Shotgun", true, "use explicit values for ammo/safety instead of toggle states");
                 State.Boombox = config.Bind("Item state", "Boombox", true, "sync state and track id"); 
-                //Item state
-                Transforms.Grabbables = config.Bind("Transforms", "Grabbables", true, "enable patches for Grabbable position and rotation");
                 //Misc
                 Misc.Username = config.Bind("Misc", "Username", true, "broadcast the local username once it is assigned to the player object");
                 //remove unused options
@@ -122,11 +117,6 @@ namespace AdditionalNetworking
             {
 	            internal static ConfigEntry<bool> Shotgun;
 	            internal static ConfigEntry<bool> Boombox;
-            }
-            
-            internal static class Transforms
-            {
-	            internal static ConfigEntry<bool> Grabbables;
             }
             
             internal static class Misc
