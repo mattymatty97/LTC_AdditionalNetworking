@@ -37,16 +37,4 @@ internal class StartOfRoundPatch
         if (GrabbableNetworking.Instance != null)
             GrabbableNetworking.Instance.ValidClientIDs.Remove(clientId);
     }
-    
-    [HarmonyFinalizer]
-    [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnLocalDisconnect))]
-    private static void OnLocalDisconnect()
-    {
-        PlayerControllerBPatch.DirtyInventory.Clear();
-        PlayerControllerBPatch.DirtySlots.Clear();
-        ShotgunItemPatch.DirtyAmmo.Clear();
-        ShotgunItemPatch.DirtySafety.Clear();
-        BoomboxItemPatch.DirtyStatus.Clear();
-        GrabbableObjectPatch.RequestedValues.Clear();
-    }
 }

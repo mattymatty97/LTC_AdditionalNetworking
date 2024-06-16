@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using AdditionalNetworking.Components;
 using HarmonyLib;
 using Unity.Netcode;
@@ -9,9 +8,6 @@ namespace AdditionalNetworking.Patches.State
     [HarmonyPatch]
     internal class BoomboxItemPatch
     {
-        
-        internal static readonly Dictionary<BoomboxItem, bool> DirtyStatus = [];
-        
         /// <summary>
         ///  Sync on Creation
         /// </summary>
@@ -25,7 +21,7 @@ namespace AdditionalNetworking.Patches.State
             if (BoomboxNetworking.Instance == null || !BoomboxNetworking.Instance.Enabled)
                 return;
             
-            if (!__instance.IsServer)
+            if (!StartOfRound.Instance.IsServer)
             {
                 BoomboxNetworking.Instance.RequestSyncServerRpc(__instance.NetworkObject);
             }
@@ -47,7 +43,7 @@ namespace AdditionalNetworking.Patches.State
             if (!__instance.IsOwner)
                 return;
 
-            DirtyStatus[__instance] = true;
+            __instance.AdditionalNetworking_dirtyStatus = true;
         }
         
                         
@@ -65,9 +61,9 @@ namespace AdditionalNetworking.Patches.State
             if (BoomboxNetworking.Instance == null || !BoomboxNetworking.Instance.Enabled)
                 return;
             
-            if (DirtyStatus.TryGetValue(boomboxItem, out var value) && value)
+            if (boomboxItem.AdditionalNetworking_dirtyStatus)
             {
-                DirtyStatus[boomboxItem] = false;
+                boomboxItem.AdditionalNetworking_dirtyStatus = false;
                 
                 if (__instance.IsOwner)
                 {
@@ -78,19 +74,6 @@ namespace AdditionalNetworking.Patches.State
             }
             
         }
-        
-        /// <summary>
-        ///  clear entries on Destroy.
-        /// </summary>
-        [HarmonyFinalizer]
-        [HarmonyPatch(typeof(NetworkBehaviour),nameof(NetworkBehaviour.OnDestroy))]
-        private static void OnDestroy(NetworkBehaviour __instance)
-        {
-            var boombox = __instance as BoomboxItem;
-            if (boombox == null)
-                return;
-            DirtyStatus.Remove(boombox);
-        }
-        
+
     }
 }

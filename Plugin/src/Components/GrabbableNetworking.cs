@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using AdditionalNetworking.Patches.State;
+﻿using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -73,7 +70,7 @@ namespace AdditionalNetworking.Components
             
             grabbableObject.SetScrapValue(scrapValue);
 
-            GrabbableObjectPatch.RequestedValues.Remove(grabbableObject);
+            grabbableObject.AdditionalNetworking_hasRequestedSync = false;
         }
     
         

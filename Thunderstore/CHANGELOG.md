@@ -1,3 +1,7 @@
+### v1.1.0
+- bundle our own Preloader to add the fields we need to the classes
+- less spammy check for scrap without a value
+
 ### v1.0.9
 - Forgot to remove Ceccil dependent code
 

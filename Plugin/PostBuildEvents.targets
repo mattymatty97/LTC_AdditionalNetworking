@@ -2,16 +2,10 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <!-- Defining the file names of project-specific data we'll load later. -->
     <PropertyGroup>
-        <AssetTargetsFile>Assets.targets</AssetTargetsFile>
-        <GameDirTargetsFile>GameDirectory.targets</GameDirTargetsFile>
+        <AssetTargetsFile>..\Assets.targets</AssetTargetsFile>
+        <GameDirTargetsFile>..\GameDirectory.targets</GameDirTargetsFile>
         <GameDirTargetsFullPath>$(ProjectDir)$(GameDirTargetsFile)</GameDirTargetsFullPath>
     </PropertyGroup>
-    <ItemGroup>
-        <ThunderStoreItems Include="..\icon.png"/>
-        <ThunderStoreItems Include="..\manifest.json"/>
-        <ThunderStoreItems Include="..\README.md"/>
-        <ThunderStoreItems Include="..\CHANGELOG.md"/>
-    </ItemGroup>
 
 
     <!-- Ensure the user (you!) has actually set everything up properly. -->
@@ -32,18 +26,18 @@
     </Target>
     <PropertyGroup>
         <!-- The mod directory to install our mod to. -->
-        <ModDirectory>$(ProfileDirectory)\BepInEx\plugins\0-$(AssemblyName)</ModDirectory>
+        <ModDirectory>$(ProfileDirectory)\BepInEx\plugins\0-$(Product)\</ModDirectory>
         <!-- Where to create the temporary directory for creating the release zip files. -->
-        <TempZipDir>$(OutputPath)ZipMeUp</TempZipDir>
+        <ZipDir>$(ProjectDir)..\Thunderstore\</ZipDir>
         <!-- The internal structure of the zip file. -->
-        <ZipStructure>$(AssemblyName)</ZipStructure>
+        <ZipStructure>BepInEx\plugins\$(Product)\</ZipStructure>
     </PropertyGroup>
 
     <!-- Copy newly built files to the game directory. -->
     <Target Name="CopyToGameFolder" AfterTargets="Build">
         <Message Importance="high" Text="Copying files to game directory."/>
         <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModDirectory)"/>
-        <Copy SourceFiles="@(Assets)" DestinationFolder="$(ModDirectory)\%(Assets.RelativeDir)"/>
+        <Copy SourceFiles="@(Assets)" DestinationFolder="$(ModDirectory)%(Assets.RelativeDir)"/>
     </Target>
 
     <!-- Find the current version of the assembly. -->
@@ -58,26 +52,10 @@
     </Target>
 
     <!-- Automatically create the zip file, ready for distribution. -->
-    <Target Name="PrepareZip" AfterTargets="Build" Condition="$(Configuration.Contains('Release'))">
-        <Message Importance="normal" Text="Copying files to temporary directory."/>
-        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(TempZipDir)\$(ZipStructure)"/>
-        <Copy SourceFiles="@(Assets)" DestinationFolder="$(TempZipDir)\$(ZipStructure)\%(Assets.RelativeDir)"/>
-        <Copy SourceFiles="@(ThunderStoreItems)" DestinationFolder="$(TempZipDir)\$(ThunderStoreItems)"/>
-    </Target>
-    <Target Name="CreateZip" AfterTargets="PrepareZip" Condition="$(Configuration.Contains('Release'))">
-        <Message Importance="high" Text="Zipping project for distribution."/>
-        <PropertyGroup>
-            <ZipFile>$(ProjectDir)\Output\$(AssemblyName)-$(AssemblyVersion).zip</ZipFile>
-        </PropertyGroup>
-        <ZipDirectory DestinationFile="$(ZipFile)" SourceDirectory="$(TempZipDir)" Overwrite="true"/>
-    </Target>
-    <Target Name="Cleanup" AfterTargets="CreateZip" Condition="'$(Configuration)' == 'Release'">
-        <Message Importance="normal" Text="Cleaning up."/>
-        <RemoveDir Directories="$(TempZipDir)"/>
-    </Target>
-    <Target Name="CopyToZipsFolder" AfterTargets="Cleanup" Condition="$(Configuration.Contains('Release')) And '$(ReleaseZipDirectory)' != ''">
-        <Message Importance="normal" Text="Moving finished zip file to zip directory."/>
-        <Copy SourceFiles="$(ZipFile)" DestinationFolder="$(ReleaseZipDirectory)"/>
+    <Target Name="MoveToOutput" AfterTargets="Build" Condition="$(Configuration.Contains('Release'))">
+        <Message Importance="high" Text="Copying files to output directory"/>
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ZipDir)$(ZipStructure)"/>
+        <Copy SourceFiles="@(Assets)" DestinationFolder="$(ZipDir)$(ZipStructure)%(Assets.RelativeDir)"/>
     </Target>
     <Target Name="NetcodePatch" AfterTargets="PostBuildEvent">
         <Exec Command="netcode-patch -nv 1.5.2 &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies->'&quot;%(Identity)&quot;', ' ')"/>

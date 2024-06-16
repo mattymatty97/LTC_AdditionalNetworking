@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using AdditionalNetworking.Components;
+﻿using AdditionalNetworking.Components;
 using HarmonyLib;
 using Unity.Netcode;
 
@@ -8,10 +7,6 @@ namespace AdditionalNetworking.Patches.State
     [HarmonyPatch]
     internal class ShotgunItemPatch
     {
-        
-        internal static readonly Dictionary<ShotgunItem, bool> DirtyAmmo = [];
-        internal static readonly Dictionary<ShotgunItem, bool> DirtySafety = [];
-        
         /// <summary>
         ///  Sync on Creation
         /// </summary>
@@ -25,7 +20,7 @@ namespace AdditionalNetworking.Patches.State
             if (ShotgunNetworking.Instance == null || !ShotgunNetworking.Instance.Enabled)
                 return;
             
-            if (!__instance.IsServer)
+            if (!StartOfRound.Instance.IsServer)
             {
                 ShotgunNetworking.Instance.RequestSyncServerRpc(__instance.NetworkObject);
             }
@@ -47,7 +42,7 @@ namespace AdditionalNetworking.Patches.State
             if (start || !__instance.IsOwner)
                 return;
             
-            DirtyAmmo[__instance] = true;
+            __instance.AdditionalNetworking_dirtyAmmo = true;
         }        
         
         /// <summary>
@@ -66,7 +61,7 @@ namespace AdditionalNetworking.Patches.State
             if (!__instance.IsOwner)
                 return;
 
-            DirtyAmmo[__instance] = true;
+            __instance.AdditionalNetworking_dirtyAmmo = true;
         }
         
         /// <summary>
@@ -85,7 +80,7 @@ namespace AdditionalNetworking.Patches.State
             if (!__instance.IsOwner)
                 return;
 
-            DirtySafety[__instance] = true;
+            __instance.AdditionalNetworking_dirtySafety = true;
         }
         
                 
@@ -103,9 +98,9 @@ namespace AdditionalNetworking.Patches.State
             if (ShotgunNetworking.Instance == null || !ShotgunNetworking.Instance.Enabled)
                 return;
             
-            if (DirtyAmmo.TryGetValue(shotgunItem, out var value) && value)
+            if (shotgunItem.AdditionalNetworking_dirtyAmmo)
             {
-                DirtyAmmo[shotgunItem] = false;
+                shotgunItem.AdditionalNetworking_dirtyAmmo = false;
                 
                 if (__instance.IsOwner)
                 {
@@ -113,9 +108,9 @@ namespace AdditionalNetworking.Patches.State
                 }
             }
             
-            if (DirtySafety.TryGetValue(shotgunItem, out var value2) && value2)
+            if (shotgunItem.AdditionalNetworking_dirtySafety)
             {
-                DirtySafety[shotgunItem] = false;
+                shotgunItem.AdditionalNetworking_dirtySafety = false;
                 
                 if (__instance.IsOwner)
                 {
@@ -123,20 +118,5 @@ namespace AdditionalNetworking.Patches.State
                 }
             }
         }
-        
-        /// <summary>
-        ///  clear entries on Destroy.
-        /// </summary>
-        [HarmonyFinalizer]
-        [HarmonyPatch(typeof(NetworkBehaviour),nameof(NetworkBehaviour.OnDestroy))]
-        private static void OnDestroy(NetworkBehaviour __instance)
-        {
-            var shotgun = __instance as ShotgunItem;
-            if (shotgun == null)
-                return;
-            DirtySafety.Remove(shotgun);
-            DirtyAmmo.Remove(shotgun);
-        }
-        
     }
 }
