@@ -6,3 +6,4 @@ Releases
 **/GameDirectory.targets
 Thunderstore/*.dll
 Thunderstore/**/*.dll
+Output/

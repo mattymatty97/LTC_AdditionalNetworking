@@ -23,7 +23,14 @@ internal class StartOfRoundPatch
         var networkObject = networkHandler.GetComponent<NetworkObject>();
         networkObject.Spawn();
     }
-    
+
+    [HarmonyFinalizer]
+    [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.SyncShipUnlockablesClientRpc))]
+    private static void AfterUnlockablesSync(StartOfRound __instance)
+    {
+        __instance.AdditionalNetworking_unlockablesSynced = true;
+    }
+
     [HarmonyFinalizer]
     [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnClientDisconnect))]
     private static void OnClientDisconnect(ulong clientId)

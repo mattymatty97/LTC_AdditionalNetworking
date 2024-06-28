@@ -13,22 +13,19 @@ namespace AdditionalNetworking.Patches.State
             if (!GrabbableNetworking.Instance.Enabled)
                 return;
             
+            if (!__instance.itemProperties.isScrap) 
+                return;
+            
             if (__instance.AdditionalNetworking_isInitialized)
                 return;            
             
             if (__instance.AdditionalNetworking_hasRequestedSync)
                 return;
             
-            if (StartOfRound.Instance.inShipPhase)
+            if (StartOfRound.Instance.inShipPhase && !StartOfRound.Instance.AdditionalNetworking_unlockablesSynced)
                 return;
             
-            if (!StartOfRound.Instance.shipHasLanded && !StartOfRound.Instance.shipIsLeaving)
-                return;
-            
-            if (!StartOfRound.Instance.localPlayerController)
-                return;
-
-            if (!__instance.itemProperties.isScrap || __instance.scrapValue != 0) 
+            if (RoundManager.Instance.AdditionalNetworking_spawnedScrapPendingSync)
                 return;
             
             GrabbableNetworking.Instance.RequestValuesServerRpc(__instance.NetworkObject);

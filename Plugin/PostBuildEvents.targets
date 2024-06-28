@@ -30,7 +30,7 @@
         <!-- Where to create the temporary directory for creating the release zip files. -->
         <ZipDir>$(ProjectDir)..\Thunderstore\</ZipDir>
         <!-- The internal structure of the zip file. -->
-        <ZipStructure>BepInEx\plugins\$(Product)\</ZipStructure>
+        <ZipStructure>BepInEx\plugins\</ZipStructure>
     </PropertyGroup>
 
     <!-- Copy newly built files to the game directory. -->
