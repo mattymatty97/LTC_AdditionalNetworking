@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using ES3Types;
 using GameNetcodeStuff;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.UI;
 
 // ReSharper disable MemberCanBeMadeStatic.Local
 

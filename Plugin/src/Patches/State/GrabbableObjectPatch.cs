@@ -1,4 +1,5 @@
-﻿using AdditionalNetworking.Components;
+﻿using System;
+using AdditionalNetworking.Components;
 using HarmonyLib;
 
 namespace AdditionalNetworking.Patches.State
@@ -27,9 +28,10 @@ namespace AdditionalNetworking.Patches.State
             
             if (RoundManager.Instance.AdditionalNetworking_spawnedScrapPendingSync)
                 return;
-            
+
             GrabbableNetworking.Instance.RequestValuesServerRpc(__instance.NetworkObject);
             __instance.AdditionalNetworking_hasRequestedSync = true;
+
         }
         
         [HarmonyPostfix]
