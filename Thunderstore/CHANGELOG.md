@@ -1,3 +1,6 @@
+### v1.1.2
+- hide logs behind config toggle
+
 ### v1.1.0
 - bundle our own Preloader to add the fields we need to the classes
 - less spammy check for scrap without a value

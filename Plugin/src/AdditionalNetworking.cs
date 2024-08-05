@@ -97,6 +97,8 @@ namespace AdditionalNetworking
                 State.Boombox = config.Bind("Item state", "Boombox", true, "sync state and track id"); 
                 //Misc
                 Misc.Username = config.Bind("Misc", "Username", true, "broadcast the local username once it is assigned to the player object");
+                //Debug
+                Debug.Verbose = config.Bind("Debug", "Verbose", false, "additional log lines");
                 //remove unused options
                 PropertyInfo orphanedEntriesProp = config.GetType().GetProperty("OrphanedEntries", BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -122,6 +124,11 @@ namespace AdditionalNetworking
             internal static class Misc
             {
 	            internal static ConfigEntry<bool> Username;
+            }
+            
+            internal static class Debug
+            {
+	            internal static ConfigEntry<bool> Verbose;
             }
         }
 

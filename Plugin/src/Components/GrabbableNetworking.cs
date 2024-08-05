@@ -61,7 +61,8 @@ namespace AdditionalNetworking.Components
         private void SyncValuesClientRpc(NetworkObjectReference grabbableReference, int scrapValue, int dataValue, ClientRpcParams clientRpcParams = default)
         {
             var grabbableObject = ((GameObject)grabbableReference).GetComponent<GrabbableObject>();
-            AdditionalNetworking.Log.LogDebug($"{nameof(GrabbableNetworking)}.SyncValuesClientRpc was called for {grabbableReference.NetworkObjectId}! scrap: {scrapValue}, data: {dataValue}");
+            if(AdditionalNetworking.PluginConfig.Debug.Verbose.Value)
+                AdditionalNetworking.Log.LogDebug($"{nameof(GrabbableNetworking)}.SyncValuesClientRpc was called for {grabbableReference.NetworkObjectId}! scrap: {scrapValue}, data: {dataValue}");
 
             if (grabbableObject.itemProperties.saveItemVariable)
             {
@@ -80,7 +81,8 @@ namespace AdditionalNetworking.Components
         [ServerRpc(RequireOwnership = false)]
         public void RequestValuesServerRpc(NetworkObjectReference grabbableReference, ServerRpcParams serverRpcParams = default)
         {
-            AdditionalNetworking.Log.LogDebug($"{nameof(GrabbableNetworking)}.RequestValuesServerRpc was called for {grabbableReference.NetworkObjectId} by {serverRpcParams.Receive.SenderClientId}!");
+            if(AdditionalNetworking.PluginConfig.Debug.Verbose.Value)
+                AdditionalNetworking.Log.LogDebug($"{nameof(GrabbableNetworking)}.RequestValuesServerRpc was called for {grabbableReference.NetworkObjectId} by {serverRpcParams.Receive.SenderClientId}!");
             var grabbableObject = ((GameObject)grabbableReference).GetComponent<GrabbableObject>();
             ClientRpcParams clientRpcParams = new ClientRpcParams
             {

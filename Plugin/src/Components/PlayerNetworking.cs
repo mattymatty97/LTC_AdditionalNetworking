@@ -75,7 +75,8 @@ namespace AdditionalNetworking.Components
                 }
             };
             
-            AdditionalNetworking.Log.LogDebug($"{nameof(PlayerNetworking)}.syncInventoryServerRpc was called for {controllerReference.NetworkObjectId}!");
+            if(AdditionalNetworking.PluginConfig.Debug.Verbose.Value)
+                AdditionalNetworking.Log.LogDebug($"{nameof(PlayerNetworking)}.syncInventoryServerRpc was called for {controllerReference.NetworkObjectId}!");
             var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
             //limit the list to the max slots of the server
             List<NetworkObjectReference> valid = new List<NetworkObjectReference>();
@@ -117,7 +118,8 @@ namespace AdditionalNetworking.Components
         [ClientRpc]
         private void SyncInventoryClientRpc(NetworkObjectReference controllerReference, NetworkObjectReference[] inventory, int[] slots, ClientRpcParams clientRpcParams = default)
         {
-            AdditionalNetworking.Log.LogDebug($"{nameof(PlayerNetworking)}.syncInventoryClientRpc was called for {controllerReference.NetworkObjectId}!");
+            if(AdditionalNetworking.PluginConfig.Debug.Verbose.Value)
+                AdditionalNetworking.Log.LogDebug($"{nameof(PlayerNetworking)}.syncInventoryClientRpc was called for {controllerReference.NetworkObjectId}!");
             var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
             if (!controllerB.IsOwner)
                 //flush the inventory
@@ -181,7 +183,7 @@ namespace AdditionalNetworking.Components
             var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
             if (selectedSlot < 0 || selectedSlot >= controllerB.ItemSlots.Length)
             {
-                AdditionalNetworking.Log.LogDebug(
+                AdditionalNetworking.Log.LogWarning(
                     $"Invalid {nameof(PlayerNetworking)}.syncSelectedSlotServerRpc was called for {controllerReference.NetworkObjectId}, Ignored! slot:{selectedSlot}");
                 return;
             }
@@ -193,7 +195,8 @@ namespace AdditionalNetworking.Components
                     TargetClientIds = ValidClientIDs.ToArray()
                 }
             };
-            AdditionalNetworking.Log.LogDebug($"{nameof(PlayerNetworking)}.syncSelectedSlotServerRpc was called for {controllerReference.NetworkObjectId}! slot:{selectedSlot}");
+            if(AdditionalNetworking.PluginConfig.Debug.Verbose.Value)
+                AdditionalNetworking.Log.LogDebug($"{nameof(PlayerNetworking)}.syncSelectedSlotServerRpc was called for {controllerReference.NetworkObjectId}! slot:{selectedSlot}");
             SyncSelectedSlotClientRpc(controllerReference, selectedSlot, clientRpcParams);
         }        
                 
@@ -204,7 +207,8 @@ namespace AdditionalNetworking.Components
         private void SyncSelectedSlotClientRpc(NetworkObjectReference controllerReference, int selectedSlot, ClientRpcParams clientRpcParams = default)
         {
             var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
-            AdditionalNetworking.Log.LogDebug($"{nameof(PlayerNetworking)}.syncSelectedSlotClientRpc was called for {controllerReference.NetworkObjectId}! slot:{selectedSlot} was:{controllerB.currentItemSlot}");
+            if(AdditionalNetworking.PluginConfig.Debug.Verbose.Value)
+                AdditionalNetworking.Log.LogDebug($"{nameof(PlayerNetworking)}.syncSelectedSlotClientRpc was called for {controllerReference.NetworkObjectId}! slot:{selectedSlot} was:{controllerB.currentItemSlot}");
             if (controllerB.IsOwner)
                 return;
             

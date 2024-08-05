@@ -69,7 +69,8 @@ namespace AdditionalNetworking.Components
                     TargetClientIds = ValidClientIDs.ToArray()
                 }
             };
-            AdditionalNetworking.Log.LogDebug($"{nameof(BoomboxNetworking)}.SyncStateServerRpc was called for {boomboxReference.NetworkObjectId}! track: {track}, playing: {playing}");
+            if(AdditionalNetworking.PluginConfig.Debug.Verbose.Value)
+                AdditionalNetworking.Log.LogDebug($"{nameof(BoomboxNetworking)}.SyncStateServerRpc was called for {boomboxReference.NetworkObjectId}! track: {track}, playing: {playing}");
             SyncStateClientRpc(boomboxReference, playing, track, clientRpcParams);
         }
         
@@ -82,7 +83,8 @@ namespace AdditionalNetworking.Components
             var boomboxItem = ((GameObject)boomboxReference).GetComponent<BoomboxItem>();
             var oldTrack = Array.IndexOf(boomboxItem.musicAudios, boomboxItem.boomboxAudio.clip);
             var oldState = boomboxItem.isPlayingMusic;
-            AdditionalNetworking.Log.LogDebug($"{nameof(BoomboxNetworking)}.SyncStateClientRpc was called for {boomboxReference.NetworkObjectId}! track: {track}, playing: {playing} was track: {oldTrack}, playing: {oldState}");
+            if(AdditionalNetworking.PluginConfig.Debug.Verbose.Value)
+                AdditionalNetworking.Log.LogDebug($"{nameof(BoomboxNetworking)}.SyncStateClientRpc was called for {boomboxReference.NetworkObjectId}! track: {track}, playing: {playing} was track: {oldTrack}, playing: {oldState}");
             
             if (boomboxItem.IsOwner)
                 return;
@@ -116,7 +118,8 @@ namespace AdditionalNetworking.Components
         [ServerRpc(RequireOwnership = false)]
         public void RequestSyncServerRpc(NetworkObjectReference boomboxReference, ServerRpcParams serverRpcParams = default)
         {
-            AdditionalNetworking.Log.LogDebug($"{nameof(BoomboxNetworking)}.requestSyncServerRpc was called for {boomboxReference.NetworkObjectId} by {serverRpcParams.Receive.SenderClientId}!");
+            if(AdditionalNetworking.PluginConfig.Debug.Verbose.Value)
+                AdditionalNetworking.Log.LogDebug($"{nameof(BoomboxNetworking)}.requestSyncServerRpc was called for {boomboxReference.NetworkObjectId} by {serverRpcParams.Receive.SenderClientId}!");
             var boomboxItem = ((GameObject)boomboxReference).GetComponent<BoomboxItem>();
             ClientRpcParams clientRpcParams = new ClientRpcParams
             {
