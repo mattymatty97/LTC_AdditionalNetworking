@@ -7,8 +7,8 @@ namespace AdditionalNetworking.Patches;
 internal class NetworkManagerPatch
 {
     [HarmonyPostfix]
-    [HarmonyPatch(typeof(NetworkManager), nameof(NetworkManager.SetSingleton))]
-    private static void AfterSingleton()
+    [HarmonyPatch(typeof(NetworkManager), nameof(NetworkManager.Initialize))]
+    private static void AfterInitialize()
     {
         AdditionalNetworking.Log.LogInfo("Registering CustomMessages!");
         Networking.PlayerControllerB.RegisterMessages();
