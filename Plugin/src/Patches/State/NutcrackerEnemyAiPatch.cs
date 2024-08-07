@@ -1,4 +1,4 @@
-﻿using AdditionalNetworking.Components;
+﻿using AdditionalNetworking.Networking;
 using HarmonyLib;
 using Unity.Netcode;
 
@@ -14,15 +14,15 @@ internal class NutcrackerEnemyAiPatch
         var networkManager = __instance.NetworkManager;
         if (networkManager == null || !networkManager.IsListening)
             return;
-        if (__instance.__rpc_exec_stage != NetworkBehaviour.__RpcExecStage.Client || !networkManager.IsClient && !networkManager.IsHost)
+        if (__instance.__rpc_exec_stage != NetworkBehaviour.__RpcExecStage.Client ||
+            (!networkManager.IsClient && !networkManager.IsHost))
             return;
         if (!__instance.IsOwner)
             return;
-        
+
         if (!AdditionalNetworking.PluginConfig.State.Shotgun.Value)
             return;
-        
-        if(ShotgunNetworking.Instance == null || !ShotgunNetworking.Instance.Enabled)
-            ShotgunNetworking.Instance.SyncAmmoServerRpc(__instance.gun.NetworkObject, __instance.gun.shellsLoaded);
+
+        Shotgun.SyncAmmo(__instance.gun.NetworkObject, __instance.gun.shellsLoaded);
     }
 }

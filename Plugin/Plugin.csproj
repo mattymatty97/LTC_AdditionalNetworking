@@ -4,7 +4,7 @@
         <RootNamespace>AdditionalNetworking</RootNamespace>
         <AssemblyName>AdditionalNetworking</AssemblyName>
         <Product>Additional Networking</Product>
-        <Version>1.1.2</Version>
+        <Version>2.0.0</Version>
         <PackageLicenseExpression>GPL-3.0</PackageLicenseExpression>
         <TargetFramework>netstandard2.1</TargetFramework>
         <LangVersion>Latest</LangVersion>
@@ -25,7 +25,7 @@
         <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Facepunch.Steamworks.Win64.dll" Publicize="true"/>
         <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Unity.Netcode.Runtime.dll" Publicize="true"/>
         <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Unity.Netcode.Components.dll" Publicize="true"/>
-        <Reference Include="..\Dependencies\Assembly-CSharp.pdll" Publicize="true"/>
+        <Reference Include="$(SolutionDir)\Dependencies\Assembly-CSharp.pdll" Publicize="true"/>
 
         <!-- clean referencing -->
         <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Unity.TextMeshPro.dll" Publicize="false"/>
@@ -35,7 +35,7 @@
         <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\UnityEngine.AudioModule.dll" Publicize="false"/>
         <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\UnityEngine.AnimationModule.dll" Publicize="false"/>
         <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\UnityEngine.UI.dll" Publicize="false"/>
-        <Reference Include="..\Dependencies\AsyncLoggers.dll" Publicize="false"/>
+        <Reference Include="$(SolutionDir)\Dependencies\AsyncLoggers.dll" Publicize="false"/>
     </ItemGroup>
     <Import Project="PostBuildEvents.targets"/>
     <!-- Embedded Debug -->

@@ -22,7 +22,7 @@ Currently patched:
 Planned:
 - Television sync ( status / play time )
 
-Planned but might not happen:
+Done?:
 - Vanilla compatibility ( allow vanilla clients to join )
 
 ### **WARNING!**

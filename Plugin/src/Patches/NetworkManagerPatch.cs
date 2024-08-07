@@ -7,11 +7,13 @@ namespace AdditionalNetworking.Patches;
 internal class NetworkManagerPatch
 {
     [HarmonyPostfix]
-    [HarmonyPatch(typeof(NetworkManager),nameof(NetworkManager.SetSingleton))]
-    private static void AfterSingleton(NetworkManager __instance)
+    [HarmonyPatch(typeof(NetworkManager), nameof(NetworkManager.SetSingleton))]
+    private static void AfterSingleton()
     {
-        __instance.AddNetworkPrefab(AdditionalNetworking.NetcodePrefab);
-        
-        AdditionalNetworking.Log.LogInfo("Added Prefab!");
+        AdditionalNetworking.Log.LogInfo("Registering CustomMessages!");
+        Networking.PlayerControllerB.RegisterMessages();
+        Networking.GrabbableObject.RegisterMessages();
+        Networking.Shotgun.RegisterMessages();
+        Networking.Boombox.RegisterMessages();
     }
 }

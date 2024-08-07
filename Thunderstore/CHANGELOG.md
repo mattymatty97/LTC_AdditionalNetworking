@@ -1,3 +1,6 @@
+### v2.0.0
+- Vanilla compatibility!!
+
 ### v1.1.2
 - hide logs behind config toggle
 

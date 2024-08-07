@@ -1,47 +1,14 @@
-﻿using AdditionalNetworking.Components;
-using AdditionalNetworking.Patches.Inventory;
-using AdditionalNetworking.Patches.State;
-using HarmonyLib;
-using Unity.Netcode;
-using UnityEngine;
+﻿using HarmonyLib;
 
 namespace AdditionalNetworking.Patches;
 
 [HarmonyPatch]
 internal class StartOfRoundPatch
 {
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.Start))]
-    private static void OnStart(StartOfRound __instance)
-    {
-        if (!__instance.IsServer)
-            return;
-
-        AdditionalNetworking.Log.LogDebug("Here!");
-        var networkHandler = UnityEngine.Object.Instantiate<GameObject>(AdditionalNetworking.NetcodePrefab);
-        networkHandler.name = $"{AdditionalNetworking.NAME}";
-        var networkObject = networkHandler.GetComponent<NetworkObject>();
-        networkObject.Spawn();
-    }
-
     [HarmonyFinalizer]
     [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.SyncShipUnlockablesClientRpc))]
     private static void AfterUnlockablesSync(StartOfRound __instance)
     {
         __instance.AdditionalNetworking_unlockablesSynced = true;
-    }
-
-    [HarmonyFinalizer]
-    [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.OnClientDisconnect))]
-    private static void OnClientDisconnect(ulong clientId)
-    {
-        if (PlayerNetworking.Instance != null)
-            PlayerNetworking.Instance.ValidClientIDs.Remove(clientId);
-        if (ShotgunNetworking.Instance != null)
-            ShotgunNetworking.Instance.ValidClientIDs.Remove(clientId);
-        if (BoomboxNetworking.Instance != null)
-            BoomboxNetworking.Instance.ValidClientIDs.Remove(clientId);
-        if (GrabbableNetworking.Instance != null)
-            GrabbableNetworking.Instance.ValidClientIDs.Remove(clientId);
     }
 }
