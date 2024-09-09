@@ -1,3 +1,6 @@
+### v2.1.0
+- Do things the Unity Intended way
+
 ### v2.0.0
 - Vanilla compatibility!!
 
