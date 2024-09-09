@@ -104,7 +104,7 @@ internal class PlayerControllerBPatch
             return;
 
         if (!__instance.IsServer && __instance.IsOwner)
-            PlayerControllerB.SyncUsername(__instance.NetworkObject, __instance.playerUsername);
+            PlayerControllerB.SyncUsernameServerRpc(__instance.NetworkObject, __instance.playerUsername);
     }
 
 

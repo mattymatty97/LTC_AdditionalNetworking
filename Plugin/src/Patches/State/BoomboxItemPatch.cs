@@ -57,7 +57,7 @@ internal class BoomboxItemPatch
             {
                 var track = Array.IndexOf(boomboxItem.musicAudios, boomboxItem.boomboxAudio.clip);
                 var state = boomboxItem.isPlayingMusic;
-                Boombox.SyncState(__instance.NetworkObject, state, track);
+                Boombox.SyncStateServerRpc(__instance.NetworkObject, state, track);
             }
         }
     }

@@ -1,6 +1,7 @@
 ﻿using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using LogLevel = BepInEx.Logging.LogLevel;
 
 namespace AdditionalNetworking.Networking;
 
@@ -42,9 +43,8 @@ public static class GrabbableObject
             return;
 
         var grabbableObject = ((GameObject)grabbableReference).GetComponent<global::GrabbableObject>();
-        if (AdditionalNetworking.PluginConfig.Debug.Verbose.Value)
-            AdditionalNetworking.Log.LogDebug(
-                $"{nameof(GrabbableObject)}.SyncValuesClientRpc was called for {grabbableReference.NetworkObjectId}! scrap: {scrapValue}, data: {dataValue}");
+        
+        AdditionalNetworking.VerboseLog(LogLevel.Debug, () => $"{nameof(GrabbableObject)}.SyncValuesClientRpc was called for {grabbableReference.NetworkObjectId}! scrap: {scrapValue}, data: {dataValue}");
 
         if (grabbableObject.itemProperties.saveItemVariable) grabbableObject.LoadItemSaveData(dataValue);
 
@@ -72,9 +72,8 @@ public static class GrabbableObject
         if (!grabbableReference.TryGet(out _))
             return;
 
-        if (AdditionalNetworking.PluginConfig.Debug.Verbose.Value)
-            AdditionalNetworking.Log.LogDebug(
-                $"{nameof(GrabbableObject)}.RequestValuesServerRpc was called for {grabbableReference.NetworkObjectId} by {senderId}!");
+        AdditionalNetworking.VerboseLog(LogLevel.Debug, () => $"{nameof(GrabbableObject)}.RequestValuesServerRpc was called for {grabbableReference.NetworkObjectId} by {senderId}!");
+        
         var grabbableObject = ((GameObject)grabbableReference).GetComponent<global::GrabbableObject>();
 
         SyncValuesClientRpc(grabbableReference, grabbableObject.scrapValue,

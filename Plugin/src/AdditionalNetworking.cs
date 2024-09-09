@@ -6,6 +6,7 @@ using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using JetBrains.Annotations;
 
 namespace AdditionalNetworking;
 
@@ -18,6 +19,15 @@ internal class AdditionalNetworking : BaseUnityPlugin
     public const string VERSION = "2.0.0";
 
     internal static ManualLogSource Log;
+
+    internal static void VerboseLog(LogLevel logLevel,Func<string> message)
+    {
+        if (message == null)
+            return;
+        
+        if ((PluginConfig.Debug.Verbose.Value & logLevel) != 0)
+            Log.Log(logLevel, message());
+    }
 
     private void Awake()
     {
@@ -65,7 +75,7 @@ internal class AdditionalNetworking : BaseUnityPlugin
             Misc.Username = config.Bind("Misc", "Username", true,
                 "broadcast the local username once it is assigned to the player object");
             //Debug
-            Debug.Verbose = config.Bind("Debug", "Verbose", false, "additional log lines");
+            Debug.Verbose = config.Bind("Debug", "Verbose", LogLevel.None, "additional log lines");
             //remove unused options
             var orphanedEntriesProp = config.GetType()
                 .GetProperty("OrphanedEntries", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -96,7 +106,7 @@ internal class AdditionalNetworking : BaseUnityPlugin
 
         internal static class Debug
         {
-            internal static ConfigEntry<bool> Verbose;
+            internal static ConfigEntry<LogLevel> Verbose;
         }
     }
 }

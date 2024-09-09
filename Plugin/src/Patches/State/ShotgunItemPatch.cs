@@ -84,14 +84,14 @@ internal class ShotgunItemPatch
         {
             shotgunItem.AdditionalNetworking_dirtyAmmo = false;
 
-            if (__instance.IsOwner) Shotgun.SyncAmmo(__instance.NetworkObject, shotgunItem.shellsLoaded);
+            if (__instance.IsOwner) Shotgun.SyncAmmoServerRpc(__instance.NetworkObject, shotgunItem.shellsLoaded);
         }
 
         if (shotgunItem.AdditionalNetworking_dirtySafety)
         {
             shotgunItem.AdditionalNetworking_dirtySafety = false;
 
-            if (__instance.IsOwner) Shotgun.SyncSafety(__instance.NetworkObject, shotgunItem.safetyOn);
+            if (__instance.IsOwner) Shotgun.SyncSafetyServerRpc(__instance.NetworkObject, shotgunItem.safetyOn);
         }
     }
 }
