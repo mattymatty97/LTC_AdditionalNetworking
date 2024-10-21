@@ -1,3 +1,7 @@
+### v2.1.2
+- add more explicit logs in case of syncing errors
+- add try catches on network calls to prevent hard-crashes
+
 ### v2.1.0
 - Do things the Unity Intended way
 

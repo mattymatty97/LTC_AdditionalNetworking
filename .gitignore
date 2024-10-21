@@ -7,3 +7,5 @@ Releases
 Thunderstore/*.dll
 Thunderstore/**/*.dll
 Output/
+
+*.user
