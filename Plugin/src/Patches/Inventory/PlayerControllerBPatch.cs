@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using HarmonyLib;
 using Unity.Netcode;
 using PlayerControllerB = AdditionalNetworking.Networking.PlayerControllerB;
@@ -104,7 +105,13 @@ internal class PlayerControllerBPatch
             return;
 
         if (!__instance.IsServer && __instance.IsOwner)
-            PlayerControllerB.SyncUsernameServerRpc(__instance.NetworkObject, __instance.playerUsername);
+            try{
+                PlayerControllerB.SyncUsernameServerRpc(__instance.NetworkObject, __instance.playerUsername);
+            }
+            catch (Exception ex)
+            {
+                AdditionalNetworking.Log.LogFatal($"Exception syncing name of {__instance.playerUsername}({__instance.NetworkObjectId}):\n{ex}");
+            }
     }
 
 
@@ -120,7 +127,13 @@ internal class PlayerControllerBPatch
             DirtySlots[__instance] = false;
 
             if (__instance.IsOwner)
-                PlayerControllerB.SyncSelectedSlotServerRpc(__instance.NetworkObject, __instance.currentItemSlot);
+                try{
+                    PlayerControllerB.SyncSelectedSlotServerRpc(__instance.NetworkObject, __instance.currentItemSlot);
+                }
+                catch (Exception ex)
+                {
+                    AdditionalNetworking.Log.LogFatal($"Exception syncing slots of {__instance.playerUsername}({__instance.NetworkObjectId}):\n{ex}");
+                }
         }
 
         if (DirtyInventory.TryGetValue(__instance, out var value2) && value2)
@@ -136,13 +149,27 @@ internal class PlayerControllerBPatch
                     var slot = __instance.ItemSlots[i];
                     if (slot != null && slot.NetworkObject != null)
                     {
+                        
+                        if (!slot.NetworkObject.IsSpawned)
+                        {
+                            AdditionalNetworking.Log.LogFatal($"{slot.itemProperties.itemName}({slot.NetworkObjectId}) is not spawned! nobody else in the network knows about it!");
+                            return;
+                        }
+                        
                         networkObjects.Add(slot.NetworkObject);
                         slots.Add(i);
                     }
                 }
 
-                PlayerControllerB.SyncInventoryServerRpc(__instance.NetworkObject, networkObjects.ToArray(),
-                    slots.ToArray());
+                try
+                {
+                    PlayerControllerB.SyncInventoryServerRpc(__instance.NetworkObject, networkObjects.ToArray(),
+                        slots.ToArray());
+                }
+                catch (Exception ex)
+                {
+                    AdditionalNetworking.Log.LogFatal($"Exception syncing inventory of {__instance.playerUsername}({__instance.NetworkObjectId}):\n{ex}");
+                }
             }
         }
     }

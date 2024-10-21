@@ -23,6 +23,6 @@ public static class LobbyCompatibilityChecker
     public static void Init()
     {
         PluginHelper.RegisterPlugin(AdditionalNetworking.GUID, Version.Parse(AdditionalNetworking.VERSION),
-            CompatibilityLevel.ClientOptional, VersionStrictness.Minor);
+            CompatibilityLevel.ClientOnly, VersionStrictness.Minor);
     }
 }

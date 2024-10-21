@@ -48,7 +48,14 @@ internal class BoomboxItemPatch
         var boomboxItem = __instance as BoomboxItem;
         if (boomboxItem == null)
             return;
+        
+        if (!__instance.NetworkObject.IsSpawned)
+        {
+            AdditionalNetworking.Log.LogFatal($"{__instance.itemProperties.itemName}({__instance.NetworkObjectId}) is not spawned! nobody else in the network knows about it!");
+            return;
+        }
 
+        
         if (boomboxItem.AdditionalNetworking_dirtyStatus)
         {
             boomboxItem.AdditionalNetworking_dirtyStatus = false;
@@ -57,7 +64,15 @@ internal class BoomboxItemPatch
             {
                 var track = Array.IndexOf(boomboxItem.musicAudios, boomboxItem.boomboxAudio.clip);
                 var state = boomboxItem.isPlayingMusic;
-                Boombox.SyncStateServerRpc(__instance.NetworkObject, state, track);
+                
+                try
+                {
+                    Boombox.SyncStateServerRpc(__instance.NetworkObject, state, track);
+                }
+                catch (Exception ex)
+                {
+                    AdditionalNetworking.Log.LogFatal($"Exception syncing boombox state of {__instance.itemProperties.itemName}({__instance.NetworkObjectId}):\n{ex}");
+                }
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using System;
+using HarmonyLib;
 
 namespace AdditionalNetworking.Patches.State;
 
@@ -24,8 +25,21 @@ internal class GrabbableObjectPatch
         if (RoundManager.Instance.AdditionalNetworking_spawnedScrapPendingSync)
             return;
 
-        Networking.GrabbableObject.RequestSyncServerRpc(__instance.NetworkObject);
-        __instance.AdditionalNetworking_hasRequestedSync = true;
+        if (!__instance.NetworkObject.IsSpawned)
+        {
+            AdditionalNetworking.Log.LogFatal($"{__instance.itemProperties.itemName}({__instance.NetworkObjectId}) is not spawned! nobody else in the network knows about it!");
+            return;
+        }
+
+        try
+        {
+            Networking.GrabbableObject.RequestSyncServerRpc(__instance.NetworkObject);
+            __instance.AdditionalNetworking_hasRequestedSync = true;
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogFatal($"Exception syncing value of {__instance.itemProperties.itemName}({__instance.NetworkObjectId}):\n{ex}");
+        }
     }
 
     [HarmonyPostfix]
