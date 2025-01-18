@@ -1,4 +1,6 @@
-﻿using Unity.Collections;
+﻿using System.IO;
+using AdditionalNetworking.Utils;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using LogLevel = BepInEx.Logging.LogLevel;
@@ -43,12 +45,28 @@ public static class GrabbableObject
             return;
 
         var grabbableObject = ((GameObject)grabbableReference).GetComponent<global::GrabbableObject>();
-        
-        AdditionalNetworking.VerboseLog(LogLevel.Debug, () => $"{nameof(GrabbableObject)}.SyncValuesClientRpc was called for {grabbableReference.NetworkObjectId}! scrap: {scrapValue}, data: {dataValue}");
+
+        AdditionalNetworking.VerboseLog(LogLevel.Debug,
+            () =>
+                $"{nameof(GrabbableObject)}.SyncValuesClientRpc was called for {grabbableReference.NetworkObjectId}! scrap: {scrapValue}, data: {dataValue}");
 
         if (grabbableObject.itemProperties.saveItemVariable) grabbableObject.LoadItemSaveData(dataValue);
 
-        grabbableObject.SetScrapValue(scrapValue);
+        var itemTag = ItemCategory.GetPathForItem(grabbableObject.itemProperties);
+        itemTag = itemTag.Replace(Path.DirectorySeparatorChar, '/');
+
+        AdditionalNetworking.VerboseLog(LogLevel.Debug,
+            () =>
+                $"{nameof(GrabbableObject)}.SyncValuesClientRpc was called for {grabbableReference.NetworkObjectId}! ItemTag: {itemTag}");
+
+
+        if (AdditionalNetworking.PluginConfig.Value.IgnoreScanNodesList.Contains(itemTag))
+        {
+            grabbableObject.scrapValue = scrapValue;
+            grabbableObject.AdditionalNetworking_isInitialized = true;
+        }
+        else
+            grabbableObject.SetScrapValue(scrapValue);
 
         grabbableObject.AdditionalNetworking_hasRequestedSync = false;
     }
@@ -72,8 +90,10 @@ public static class GrabbableObject
         if (!grabbableReference.TryGet(out _))
             return;
 
-        AdditionalNetworking.VerboseLog(LogLevel.Debug, () => $"{nameof(GrabbableObject)}.RequestValuesServerRpc was called for {grabbableReference.NetworkObjectId} by {senderId}!");
-        
+        AdditionalNetworking.VerboseLog(LogLevel.Debug,
+            () =>
+                $"{nameof(GrabbableObject)}.RequestValuesServerRpc was called for {grabbableReference.NetworkObjectId} by {senderId}!");
+
         var grabbableObject = ((GameObject)grabbableReference).GetComponent<global::GrabbableObject>();
 
         SyncValuesClientRpc(grabbableReference, grabbableObject.scrapValue,

@@ -1,7 +1,7 @@
 ﻿using System;
 using HarmonyLib;
 
-namespace AdditionalNetworking.Patches.State;
+namespace AdditionalNetworking.Patches.Value;
 
 [HarmonyPatch]
 internal class GrabbableObjectPatch
@@ -10,6 +10,9 @@ internal class GrabbableObjectPatch
     [HarmonyPatch(typeof(GrabbableObject), nameof(GrabbableObject.LateUpdate))]
     private static void CheckScrapHasValue(GrabbableObject __instance)
     {
+        if (!AdditionalNetworking.PluginConfig.Value.Enabled.Value)
+            return;
+
         if (!__instance.itemProperties.isScrap)
             return;
 
@@ -27,7 +30,8 @@ internal class GrabbableObjectPatch
 
         if (!__instance.NetworkObject.IsSpawned)
         {
-            AdditionalNetworking.Log.LogFatal($"{__instance.itemProperties.itemName}({__instance.NetworkObjectId}) is not spawned! nobody else in the network knows about it!");
+            AdditionalNetworking.Log.LogFatal(
+                $"{__instance.itemProperties.itemName}({__instance.NetworkObjectId}) is not spawned! nobody else in the network knows about it!");
             return;
         }
 
@@ -38,7 +42,8 @@ internal class GrabbableObjectPatch
         }
         catch (Exception ex)
         {
-            AdditionalNetworking.Log.LogFatal($"Exception syncing value of {__instance.itemProperties.itemName}({__instance.NetworkObjectId}):\n{ex}");
+            AdditionalNetworking.Log.LogFatal(
+                $"Exception syncing value of {__instance.itemProperties.itemName}({__instance.NetworkObjectId}):\n{ex}");
         }
     }
 

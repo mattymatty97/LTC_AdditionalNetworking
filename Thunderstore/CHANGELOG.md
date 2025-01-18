@@ -1,3 +1,6 @@
+### v2.1.3
+- allow certain item types to skip updating the ScanNode when syncing the scrap value
+
 ### v2.1.2
 - add more explicit logs in case of syncing errors
 - add try catches on network calls to prevent hard-crashes
