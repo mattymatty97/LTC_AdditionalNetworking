@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Reflection;
 using BepInEx;
@@ -17,17 +16,16 @@ namespace AdditionalNetworking_Preloader
         public static IEnumerable<string> TargetDLLs { get; } = new string[] { "Assembly-CSharp.dll" };
 
         private static readonly string MainDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        
+
         public static void Patch(AssemblyDefinition assembly)
         {
-
             var logHandler = (bool fail, string message) =>
             {
                 if (fail)
                     Log.LogWarning(message);
                 Log.LogInfo(message);
             };
-            
+
             Log.LogWarning($"Patching {assembly.Name.Name}");
             if (assembly.Name.Name == "Assembly-CSharp")
             {
@@ -40,8 +38,8 @@ namespace AdditionalNetworking_Preloader
                                 FieldAttributes.Private,
                                 "AdditionalNetworking_isInitialized",
                                 type.Module.ImportReference(typeof(bool)),
-                                logHandler); 
-                        
+                                logHandler);
+
                             type.AddField(
                                 FieldAttributes.Private,
                                 "AdditionalNetworking_hasRequestedSync",
@@ -54,7 +52,7 @@ namespace AdditionalNetworking_Preloader
                                 "AdditionalNetworking_dirtyInventory",
                                 type.Module.ImportReference(typeof(bool)),
                                 logHandler);
-                        
+
                             type.AddField(
                                 FieldAttributes.Private,
                                 "AdditionalNetworking_dirtySlots",
@@ -67,7 +65,7 @@ namespace AdditionalNetworking_Preloader
                                 "AdditionalNetworking_dirtyAmmo",
                                 type.Module.ImportReference(typeof(bool)),
                                 logHandler);
-                        
+
                             type.AddField(
                                 FieldAttributes.Private,
                                 "AdditionalNetworking_dirtySafety",
@@ -75,6 +73,13 @@ namespace AdditionalNetworking_Preloader
                                 logHandler);
                             break;
                         case "BoomboxItem":
+                            type.AddField(
+                                FieldAttributes.Private,
+                                "AdditionalNetworking_dirtyStatus",
+                                type.Module.ImportReference(typeof(bool)),
+                                logHandler);
+                            break;
+                        case "AnimatedItem":
                             type.AddField(
                                 FieldAttributes.Private,
                                 "AdditionalNetworking_dirtyStatus",
@@ -99,10 +104,11 @@ namespace AdditionalNetworking_Preloader
                 }
             }
 
-            if (!PluginConfig.Enabled.Value) 
+            if (!PluginConfig.Enabled.Value)
                 return;
-            
-            var outputAssembly = $"{PluginConfig.OutputPath.Value}/{assembly.Name.Name}{PluginConfig.OutputExtension.Value}";
+
+            var outputAssembly =
+                $"{PluginConfig.OutputPath.Value}/{assembly.Name.Name}{PluginConfig.OutputExtension.Value}";
             Log.LogWarning($"Saving modified Assembly to {outputAssembly}");
             assembly.Write(outputAssembly);
         }
@@ -127,8 +133,10 @@ namespace AdditionalNetworking_Preloader
                 var config = new ConfigFile(Utility.CombinePaths(MainDir, "Development.cfg"), true);
                 //Initialize Configs
                 Enabled = config.Bind("DevelOptions", "Enabled", false, "Enable development dll output");
-                OutputPath = config.Bind("DevelOptions", "OutputPath", MainDir, "Folder where to write the modified dlls");
-                OutputExtension = config.Bind("DevelOptions", "OutputExtension", ".pdll", "Extension to use for the modified dlls\n( Do not use .dll if outputting inside the BepInEx folders )");
+                OutputPath = config.Bind("DevelOptions", "OutputPath", MainDir,
+                    "Folder where to write the modified dlls");
+                OutputExtension = config.Bind("DevelOptions", "OutputExtension", ".pdll",
+                    "Extension to use for the modified dlls\n( Do not use .dll if outputting inside the BepInEx folders )");
 
                 //remove unused options
                 PropertyInfo orphanedEntriesProp = config.GetType()

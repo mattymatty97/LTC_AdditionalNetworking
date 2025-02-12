@@ -18,10 +18,10 @@ internal class AdditionalNetworking : BaseUnityPlugin
 {
     public const string GUID = "mattymatty.AdditionalNetworking";
     public const string NAME = "AdditionalNetworking";
-    public const string VERSION = "2.1.3";
+    public const string VERSION = "2.2.0";
 
     internal static ManualLogSource Log;
-    internal static List<Hook> Hooks = [];
+    internal static readonly List<Hook> Hooks = [];
 
     internal static void VerboseLog(LogLevel logLevel, Func<string> message)
     {
@@ -74,6 +74,7 @@ internal class AdditionalNetworking : BaseUnityPlugin
             State.Shotgun = config.Bind("Item state", "Shotgun", true,
                 "use explicit values for ammo/safety instead of toggle states");
             State.Boombox = config.Bind("Item state", "Boombox", true, "sync state and track id");
+            State.Animated = config.Bind("Item state", "Animated Item", true, "sync noise for ToyRobot/Dentures ecc..");
             //Item value
             Value.Enabled = config.Bind("Item Values", "Enabled", true, "sync value of scrap if missing");
             Value.IgnoreScanNodes = config.Bind("Item Values", "Ignored Scan Nodes", "Vanilla/Apparatus,",
@@ -103,6 +104,7 @@ internal class AdditionalNetworking : BaseUnityPlugin
             {
                 LethalConfigProxy.AddConfig(Inventory.InventoryChange);
                 LethalConfigProxy.AddConfig(Inventory.SlotChange);
+                LethalConfigProxy.AddConfig(State.Animated);
                 LethalConfigProxy.AddConfig(State.Boombox);
                 LethalConfigProxy.AddConfig(State.Shotgun);
                 LethalConfigProxy.AddConfig(Value.Enabled);
@@ -133,6 +135,7 @@ internal class AdditionalNetworking : BaseUnityPlugin
         {
             internal static ConfigEntry<bool> Shotgun;
             internal static ConfigEntry<bool> Boombox;
+            internal static ConfigEntry<bool> Animated;
         }
 
         //Item value

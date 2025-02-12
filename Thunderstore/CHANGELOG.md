@@ -1,3 +1,6 @@
+### v2.2.0
+- sync sound state for noise making animated objects ( eg: ToyRobot and Dentures )
+
 ### v2.1.3
 - allow certain item types to skip updating the ScanNode when syncing the scrap value
 
@@ -19,7 +22,7 @@
 - less spammy check for scrap without a value
 
 ### v1.0.9
-- Forgot to remove Ceccil dependent code
+- Forgot to remove Cecil dependent code
 
 ### v1.0.8
 - Rollback to Stable
