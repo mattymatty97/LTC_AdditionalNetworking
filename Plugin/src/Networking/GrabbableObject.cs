@@ -1,5 +1,4 @@
-﻿using System.IO;
-using AdditionalNetworking.Utils;
+﻿using AdditionalNetworking.Utils;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -52,8 +51,7 @@ public static class GrabbableObject
 
         if (grabbableObject.itemProperties.saveItemVariable) grabbableObject.LoadItemSaveData(dataValue);
 
-        var itemTag = ItemCategory.GetPathForItem(grabbableObject.itemProperties);
-        itemTag = itemTag.Replace(Path.DirectorySeparatorChar, '/');
+        var itemTag = ItemCategory.GetKeyForItem(grabbableObject.itemProperties);
 
         AdditionalNetworking.VerboseLog(LogLevel.Debug,
             () =>

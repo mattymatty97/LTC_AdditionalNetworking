@@ -9,6 +9,7 @@ public class ItemCategory
 {
     internal static Item[] VanillaItems;
     internal static readonly Dictionary<Item, (string api, string modname)> ItemModMap = [];
+    internal static readonly Dictionary<Item, string> ItemKeyMap = [];
 
     public static string GetPathForItem(Item item)
     {
@@ -41,6 +42,19 @@ public class ItemCategory
         var path = Path.Combine(modTag.api, cleanMod, cleanName);
 
         return path;
+    }
+
+    public static string GetKeyForItem(Item item)
+    {
+        if (ItemKeyMap.TryGetValue(item, out var key))
+            return key;
+
+        var itemTag = GetPathForItem(item);
+        itemTag = itemTag.Replace(Path.DirectorySeparatorChar, '/');
+        key = itemTag;
+        ItemKeyMap[item] = key;
+
+        return key;
     }
 
     private static readonly Regex ConfigFilterRegex = new Regex(@"[\n\t\\\'\[\]]");

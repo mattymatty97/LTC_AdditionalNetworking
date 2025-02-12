@@ -1,4 +1,5 @@
 ﻿using System;
+using AdditionalNetworking.Utils;
 using HarmonyLib;
 
 namespace AdditionalNetworking.Patches.Value;
@@ -30,8 +31,9 @@ internal class GrabbableObjectPatch
 
         if (!__instance.NetworkObject.IsSpawned)
         {
+            var itemTag = ItemCategory.GetKeyForItem(__instance.itemProperties);
             AdditionalNetworking.Log.LogFatal(
-                $"{__instance.itemProperties.itemName}({__instance.NetworkObjectId}) is not spawned! nobody else in the network knows about it!");
+                $"{itemTag}({__instance.GetInstanceID()}) is not spawned! nobody else in the network knows about it!");
             return;
         }
 
@@ -42,8 +44,9 @@ internal class GrabbableObjectPatch
         }
         catch (Exception ex)
         {
+            var itemTag = ItemCategory.GetKeyForItem(__instance.itemProperties);
             AdditionalNetworking.Log.LogFatal(
-                $"Exception syncing value of {__instance.itemProperties.itemName}({__instance.NetworkObjectId}):\n{ex}");
+                $"Exception syncing value of {itemTag}({__instance.NetworkObjectId}):\n{ex}");
         }
     }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using AdditionalNetworking.Networking;
+using AdditionalNetworking.Utils;
 using HarmonyLib;
 using Unity.Netcode;
 
@@ -26,22 +27,28 @@ internal class NutcrackerEnemyAiPatch
 
         if (!__instance.NetworkObject.IsSpawned)
         {
-            AdditionalNetworking.Log.LogFatal($"{__instance.NetworkObject.name}({__instance.NetworkObjectId}) is not spawned! nobody else in the network knows about it!");
+            AdditionalNetworking.Log.LogFatal(
+                $"{__instance.NetworkObject.name}({__instance.GetInstanceID()}) is not spawned! nobody else in the network knows about it!");
             return;
         }
-        
+
         if (!__instance.gun.NetworkObject.IsSpawned)
         {
-            AdditionalNetworking.Log.LogFatal($"{__instance.gun.itemProperties.itemName}({__instance.gun.NetworkObjectId}) is not spawned! nobody else in the network knows about it!");
+            var itemTag = ItemCategory.GetKeyForItem(__instance.gun.itemProperties);
+            AdditionalNetworking.Log.LogFatal(
+                $"{itemTag}({__instance.gun.GetInstanceID()}) is not spawned! nobody else in the network knows about it!");
             return;
         }
-        
-        try{
+
+        try
+        {
             Shotgun.SyncAmmoServerRpc(__instance.gun.NetworkObject, __instance.gun.shellsLoaded);
         }
         catch (Exception ex)
         {
-            AdditionalNetworking.Log.LogFatal($"Exception syncing ammo of {__instance.gun.itemProperties.itemName}({__instance.gun.NetworkObjectId}):\n{ex}");
+            var itemTag = ItemCategory.GetKeyForItem(__instance.gun.itemProperties);
+            AdditionalNetworking.Log.LogFatal(
+                $"Exception syncing ammo of {itemTag}({__instance.gun.NetworkObjectId}):\n{ex}");
         }
     }
 }
