@@ -18,7 +18,7 @@ internal class AdditionalNetworking : BaseUnityPlugin
 {
     public const string GUID = "mattymatty.AdditionalNetworking";
     public const string NAME = "AdditionalNetworking";
-    public const string VERSION = "2.2.0";
+    public const string VERSION = "2.2.1";
 
     internal static ManualLogSource Log;
     internal static readonly List<Hook> Hooks = [];

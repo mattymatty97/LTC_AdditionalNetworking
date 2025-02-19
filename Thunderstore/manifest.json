@@ -1,6 +1,6 @@
 {
   "name": "AdditionalNetworking_Experimental",
-  "version_number": "2.2.0",
+  "version_number": "2.2.1",
   "website_url": "https://github.com/mattymatty97/LTC_AdditionalNetworking",
   "description": "Use more Explicit networking for stuff like selected slot and inventory.",
   "dependencies": [

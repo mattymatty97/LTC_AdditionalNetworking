@@ -1,3 +1,6 @@
+### v2.2.1
+- sync `isCrouching` state to Host so Host AIs can make use of it
+
 ### v2.2.0
 - sync sound state for noise making animated objects ( eg: ToyRobot and Dentures )
 
