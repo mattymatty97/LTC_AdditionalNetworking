@@ -12,7 +12,7 @@ internal class ShotgunItemPatch
     [HarmonyPatch(typeof(ShotgunItem), nameof(ShotgunItem.Start))]
     private static void OnStart(ShotgunItem __instance)
     {
-        if (!AdditionalNetworking.PluginConfig.State.Shotgun.Value)
+        if (!AdditionalNetworking.PluginConfig.ItemState.Shotgun.Value)
             return;
 
         if (StartOfRound.Instance.IsServer)
@@ -43,7 +43,7 @@ internal class ShotgunItemPatch
     [HarmonyPatch(typeof(ShotgunItem), nameof(ShotgunItem.ReloadGunEffectsServerRpc))]
     private static void OnAmmoReload(ShotgunItem __instance, bool start)
     {
-        if (!AdditionalNetworking.PluginConfig.State.Shotgun.Value)
+        if (!AdditionalNetworking.PluginConfig.ItemState.Shotgun.Value)
             return;
 
         if (start || !__instance.IsOwner)
@@ -57,7 +57,7 @@ internal class ShotgunItemPatch
     [HarmonyPatch(typeof(ShotgunItem), nameof(ShotgunItem.ShootGun))]
     private static void OnShot(ShotgunItem __instance)
     {
-        if (!AdditionalNetworking.PluginConfig.State.Shotgun.Value)
+        if (!AdditionalNetworking.PluginConfig.ItemState.Shotgun.Value)
             return;
 
         if (!__instance.IsOwner)
@@ -71,7 +71,7 @@ internal class ShotgunItemPatch
     [HarmonyPatch(typeof(ShotgunItem), nameof(ShotgunItem.ItemInteractLeftRight))]
     private static void OnSafetyToggle(ShotgunItem __instance, bool right)
     {
-        if (!AdditionalNetworking.PluginConfig.State.Shotgun.Value)
+        if (!AdditionalNetworking.PluginConfig.ItemState.Shotgun.Value)
             return;
 
         if (!__instance.IsOwner)
@@ -89,29 +89,30 @@ internal class ShotgunItemPatch
         if (shotgunItem == null)
             return;
 
+        if (!__instance.NetworkObject.IsSpawned)
+        {
+            var itemTag = ItemCategory.GetKeyForItem(__instance.itemProperties);
+            AdditionalNetworking.Log.LogFatal(
+                $"{itemTag}({__instance.GetInstanceID()}) is not spawned! nobody else in the network knows about it!");
+            return;
+        }
+
         if (shotgunItem.AdditionalNetworking_dirtyAmmo)
         {
             shotgunItem.AdditionalNetworking_dirtyAmmo = false;
 
-            if (!__instance.NetworkObject.IsSpawned)
+            if (__instance.IsOwner)
             {
-                var itemTag = ItemCategory.GetKeyForItem(__instance.itemProperties);
-                AdditionalNetworking.Log.LogFatal(
-                    $"{itemTag}({__instance.GetInstanceID()}) is not spawned! nobody else in the network knows about it!");
-                return;
-            }
-
-            if (!__instance.IsOwner)
-                return;
-            try
-            {
-                Shotgun.SyncAmmoServerRpc(__instance.NetworkObject, shotgunItem.shellsLoaded);
-            }
-            catch (Exception ex)
-            {
-                var itemTag = ItemCategory.GetKeyForItem(__instance.itemProperties);
-                AdditionalNetworking.Log.LogFatal(
-                    $"Exception syncing ammo of {itemTag}({__instance.NetworkObjectId}):\n{ex}");
+                try
+                {
+                    Shotgun.SyncAmmoServerRpc(__instance.NetworkObject, shotgunItem.shellsLoaded);
+                }
+                catch (Exception ex)
+                {
+                    var itemTag = ItemCategory.GetKeyForItem(__instance.itemProperties);
+                    AdditionalNetworking.Log.LogFatal(
+                        $"Exception syncing ammo of {itemTag}({__instance.NetworkObjectId}):\n{ex}");
+                }
             }
         }
 
@@ -119,25 +120,18 @@ internal class ShotgunItemPatch
         {
             shotgunItem.AdditionalNetworking_dirtySafety = false;
 
-            if (!__instance.NetworkObject.IsSpawned)
+            if (__instance.IsOwner)
             {
-                var itemTag = ItemCategory.GetKeyForItem(__instance.itemProperties);
-                AdditionalNetworking.Log.LogFatal(
-                    $"{itemTag}({__instance.GetInstanceID()}) is not spawned! nobody else in the network knows about it!");
-                return;
-            }
-
-            if (!__instance.IsOwner)
-                return;
-            try
-            {
-                Shotgun.SyncSafetyServerRpc(__instance.NetworkObject, shotgunItem.safetyOn);
-            }
-            catch (Exception ex)
-            {
-                var itemTag = ItemCategory.GetKeyForItem(__instance.itemProperties);
-                AdditionalNetworking.Log.LogFatal(
-                    $"Exception syncing safety of {itemTag}({__instance.NetworkObjectId}):\n{ex}");
+                try
+                {
+                    Shotgun.SyncSafetyServerRpc(__instance.NetworkObject, shotgunItem.safetyOn);
+                }
+                catch (Exception ex)
+                {
+                    var itemTag = ItemCategory.GetKeyForItem(__instance.itemProperties);
+                    AdditionalNetworking.Log.LogFatal(
+                        $"Exception syncing safety of {itemTag}({__instance.NetworkObjectId}):\n{ex}");
+                }
             }
         }
     }

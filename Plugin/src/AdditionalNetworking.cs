@@ -65,16 +65,24 @@ internal class AdditionalNetworking : BaseUnityPlugin
 
             config.SaveOnConfigSet = false;
             //Initialize Configs
+
             //Inventory
             Inventory.SlotChange = config.Bind("Inventory", "SlotChange", true,
                 "use explicit slot numbers when swapping slots");
             Inventory.InventoryChange =
                 config.Bind("Inventory", "InventoryChange", true, "broadcast the exact inventory order");
+
+            //Player state
+            PlayerState.Crouching = config.Bind("Player state", "Crouching", true,
+                "sync isCrouching state to allow Host AIs to correctly use the variable");
+
             //Item state
-            State.Shotgun = config.Bind("Item state", "Shotgun", true,
+            ItemState.Shotgun = config.Bind("Item state", "Shotgun", true,
                 "use explicit values for ammo/safety instead of toggle states");
-            State.Boombox = config.Bind("Item state", "Boombox", true, "sync state and track id");
-            State.Animated = config.Bind("Item state", "Animated Item", true, "sync noise for ToyRobot/Dentures ecc..");
+            ItemState.Boombox = config.Bind("Item state", "Boombox", true, "sync state and track id");
+            ItemState.Animated =
+                config.Bind("Item state", "Animated Item", true, "sync noise for ToyRobot/Dentures ecc..");
+
             //Item value
             Value.Enabled = config.Bind("Item Values", "Enabled", true, "sync value of scrap if missing");
             Value.IgnoreScanNodes = config.Bind("Item Values", "Ignored Scan Nodes", "Vanilla/Apparatus,",
@@ -82,9 +90,11 @@ internal class AdditionalNetworking : BaseUnityPlugin
 
             ParseScanNodeList();
             Value.IgnoreScanNodes.SettingChanged += (_, _) => ParseScanNodeList();
+
             //Misc
             Misc.Username = config.Bind("Misc", "Username", true,
                 "broadcast the local username once it is assigned to the player object");
+
             //Debug
             Debug.Verbose = config.Bind("Debug", "Verbose", LogLevel.None, "additional log lines");
 
@@ -104,12 +114,12 @@ internal class AdditionalNetworking : BaseUnityPlugin
             {
                 LethalConfigProxy.AddConfig(Inventory.InventoryChange);
                 LethalConfigProxy.AddConfig(Inventory.SlotChange);
-                LethalConfigProxy.AddConfig(State.Animated);
-                LethalConfigProxy.AddConfig(State.Boombox);
-                LethalConfigProxy.AddConfig(State.Shotgun);
+                LethalConfigProxy.AddConfig(ItemState.Animated);
+                LethalConfigProxy.AddConfig(ItemState.Boombox);
+                LethalConfigProxy.AddConfig(ItemState.Shotgun);
                 LethalConfigProxy.AddConfig(Value.Enabled);
                 LethalConfigProxy.AddConfig(Value.IgnoreScanNodes);
-                LethalConfigProxy.AddConfig(State.Shotgun);
+                LethalConfigProxy.AddConfig(ItemState.Shotgun);
                 LethalConfigProxy.AddConfig(Misc.Username);
                 LethalConfigProxy.AddConfig(Debug.Verbose);
             }
@@ -131,11 +141,17 @@ internal class AdditionalNetworking : BaseUnityPlugin
         }
 
         //Item state
-        internal static class State
+        internal static class ItemState
         {
             internal static ConfigEntry<bool> Shotgun;
             internal static ConfigEntry<bool> Boombox;
             internal static ConfigEntry<bool> Animated;
+        }
+
+        //player state
+        internal static class PlayerState
+        {
+            internal static ConfigEntry<bool> Crouching;
         }
 
         //Item value

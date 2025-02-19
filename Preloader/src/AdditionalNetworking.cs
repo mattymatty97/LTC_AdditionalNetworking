@@ -46,7 +46,7 @@ namespace AdditionalNetworking_Preloader
                                 type.Module.ImportReference(typeof(bool)),
                                 logHandler);
                             break;
-                        case "PlayerControllerB":
+                        case "GameNetcodeStuff.PlayerControllerB":
                             type.AddField(
                                 FieldAttributes.Private,
                                 "AdditionalNetworking_dirtyInventory",
@@ -56,6 +56,12 @@ namespace AdditionalNetworking_Preloader
                             type.AddField(
                                 FieldAttributes.Private,
                                 "AdditionalNetworking_dirtySlots",
+                                type.Module.ImportReference(typeof(bool)),
+                                logHandler);
+
+                            type.AddField(
+                                FieldAttributes.Private,
+                                "AdditionalNetworking_lastCrouchState",
                                 type.Module.ImportReference(typeof(bool)),
                                 logHandler);
                             break;

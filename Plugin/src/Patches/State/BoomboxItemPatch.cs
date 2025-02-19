@@ -12,7 +12,7 @@ internal class BoomboxItemPatch
     [HarmonyPatch(typeof(BoomboxItem), nameof(BoomboxItem.Start))]
     private static void OnStart(BoomboxItem __instance)
     {
-        if (!AdditionalNetworking.PluginConfig.State.Boombox.Value)
+        if (!AdditionalNetworking.PluginConfig.ItemState.Boombox.Value)
             return;
 
         if (!StartOfRound.Instance.IsServer) Boombox.RequestSyncServerRpc(__instance.NetworkObject);
@@ -22,7 +22,7 @@ internal class BoomboxItemPatch
     [HarmonyPatch(typeof(BoomboxItem), nameof(BoomboxItem.StartMusic))]
     private static void OnMusicChange(BoomboxItem __instance)
     {
-        if (!AdditionalNetworking.PluginConfig.State.Boombox.Value)
+        if (!AdditionalNetworking.PluginConfig.ItemState.Boombox.Value)
             return;
 
         if (!__instance.IsOwner)

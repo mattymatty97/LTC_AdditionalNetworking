@@ -22,7 +22,7 @@ internal class NutcrackerEnemyAiPatch
         if (!__instance.IsOwner)
             return;
 
-        if (!AdditionalNetworking.PluginConfig.State.Shotgun.Value)
+        if (!AdditionalNetworking.PluginConfig.ItemState.Shotgun.Value)
             return;
 
         if (!__instance.NetworkObject.IsSpawned)

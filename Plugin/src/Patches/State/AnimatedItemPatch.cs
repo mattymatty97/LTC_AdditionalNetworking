@@ -12,7 +12,7 @@ internal static class AnimatedItemPatch
     [HarmonyPatch(nameof(AnimatedItem.Start))]
     private static void OnStart(AnimatedItem __instance)
     {
-        if (!AdditionalNetworking.PluginConfig.State.Animated.Value)
+        if (!AdditionalNetworking.PluginConfig.ItemState.Animated.Value)
             return;
 
         if (!__instance.IsServer)
@@ -24,7 +24,7 @@ internal static class AnimatedItemPatch
     [HarmonyPatch(nameof(AnimatedItem.EquipItem))]
     private static void OnEquipItem(AnimatedItem __instance)
     {
-        if (!AdditionalNetworking.PluginConfig.State.Animated.Value)
+        if (!AdditionalNetworking.PluginConfig.ItemState.Animated.Value)
             return;
 
         if (!__instance.IsOwner)
@@ -38,7 +38,7 @@ internal static class AnimatedItemPatch
     [HarmonyPatch(typeof(GrabbableObject), nameof(GrabbableObject.LateUpdate))]
     private static void OnLateUpdate(GrabbableObject __instance)
     {
-        if (!AdditionalNetworking.PluginConfig.State.Animated.Value)
+        if (!AdditionalNetworking.PluginConfig.ItemState.Animated.Value)
             return;
 
         var animatedItem = __instance as AnimatedItem;

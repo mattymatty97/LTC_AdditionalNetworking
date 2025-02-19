@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using AdditionalNetworking.Networking;
+using HarmonyLib;
 using Unity.Netcode;
 
 namespace AdditionalNetworking.Patches;
@@ -11,9 +12,9 @@ internal class NetworkManagerPatch
     private static void AfterInitialize()
     {
         AdditionalNetworking.Log.LogInfo("Registering CustomMessages!");
-        Networking.PlayerControllerB.RegisterMessages();
+        PlayerController.RegisterMessages();
         Networking.GrabbableObject.RegisterMessages();
-        Networking.Shotgun.RegisterMessages();
-        Networking.Boombox.RegisterMessages();
+        Shotgun.RegisterMessages();
+        Boombox.RegisterMessages();
     }
 }
