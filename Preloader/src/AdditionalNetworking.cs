@@ -106,6 +106,13 @@ namespace AdditionalNetworking_Preloader
                                 type.Module.ImportReference(typeof(bool)),
                                 logHandler);
                             break;
+                        case "MenuManager":
+                            type.AddField(
+                                FieldAttributes.Private,
+                                "AdditionalNetworking_preloaded",
+                                type.Module.ImportReference(typeof(bool)),
+                                logHandler);
+                            break;
                     }
                 }
             }

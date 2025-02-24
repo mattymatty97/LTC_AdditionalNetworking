@@ -37,8 +37,18 @@ internal class AdditionalNetworking : BaseUnityPlugin
         Log = Logger;
         try
         {
+            var fieldInfo = typeof(MenuManager).GetField("AdditionalNetworking_preloaded",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+
+            if (fieldInfo == null)
+            {
+                Log.LogFatal("Error missing Preloader, Disabling mod!");
+                return;
+            }
+
             if (LobbyCompatibilityChecker.Enabled)
                 LobbyCompatibilityChecker.Init();
+
             Log.LogInfo("Initializing Configs");
 
             PluginConfig.Init(this);
