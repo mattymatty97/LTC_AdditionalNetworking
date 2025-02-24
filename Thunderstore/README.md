@@ -18,9 +18,8 @@ Currently patched:
 - Boombox status ( Clients will request Boombox status from Host upon spawn )
 - Player Username ( Owner will sync the name of his playerObject )
 - Sync scrap value if value is missing ( Client will request values from server )
-
-Planned:
-- Television sync ( status / play time )
+- Sync noise status for AnimatedItems ( Owner will sync the status of the AudioSource )
+- Sync crouching status of clients ( [fixes Old Birds/Giants](https://discord.com/channels/750645598293590077/1328436869612048535) )
 
 Done:
 - Vanilla compatibility ( allow vanilla clients to join )
