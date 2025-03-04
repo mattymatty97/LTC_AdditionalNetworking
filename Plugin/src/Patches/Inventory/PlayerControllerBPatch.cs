@@ -22,8 +22,18 @@ internal class PlayerControllerBPatch
         if (!AdditionalNetworking.PluginConfig.Misc.Username.Value)
             return;
 
-        if (!__instance.IsServer)
+        if (__instance.IsServer)
+            return;
+
+        try
+        {
             PlayerController.RequestSyncUsernameServerRpc(__instance.NetworkObject);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError(
+                $"Exception during networking of {__instance.playerUsername}({__instance.NetworkObjectId}): {ex}");
+        }
     }
 
     /// <summary>
@@ -116,16 +126,18 @@ internal class PlayerControllerBPatch
         if (!AdditionalNetworking.PluginConfig.Misc.Username.Value)
             return;
 
-        if (!__instance.IsServer && __instance.IsOwner)
-            try
-            {
-                PlayerController.SyncUsernameServerRpc(__instance.NetworkObject, __instance.playerUsername);
-            }
-            catch (Exception ex)
-            {
-                AdditionalNetworking.Log.LogFatal(
-                    $"Exception syncing name of {__instance.playerUsername}({__instance.NetworkObjectId}):\n{ex}");
-            }
+        if (__instance.IsServer || !__instance.IsOwner)
+            return;
+
+        try
+        {
+            PlayerController.SyncUsernameServerRpc(__instance.NetworkObject, __instance.playerUsername);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogFatal(
+                $"Exception during networking of {__instance.playerUsername}({__instance.NetworkObjectId}):\n{ex}");
+        }
     }
 
 
@@ -149,7 +161,7 @@ internal class PlayerControllerBPatch
                 catch (Exception ex)
                 {
                     AdditionalNetworking.Log.LogFatal(
-                        $"Exception syncing slots of {__instance.playerUsername}({__instance.NetworkObjectId}):\n{ex}");
+                        $"Exception during networking of {__instance.playerUsername}({__instance.NetworkObjectId}):\n{ex}");
                 }
             }
         }
@@ -193,7 +205,7 @@ internal class PlayerControllerBPatch
                 catch (Exception ex)
                 {
                     AdditionalNetworking.Log.LogFatal(
-                        $"Exception syncing inventory of {__instance.playerUsername}({__instance.NetworkObjectId}):\n{ex}");
+                        $"Exception during networking of {__instance.playerUsername}({__instance.NetworkObjectId}):\n{ex}");
                 }
             }
         }
@@ -211,7 +223,7 @@ internal class PlayerControllerBPatch
                 catch (Exception ex)
                 {
                     AdditionalNetworking.Log.LogFatal(
-                        $"Exception syncing crouching state of {__instance.playerUsername}({__instance.NetworkObjectId}):\n{ex}");
+                        $"Exception during networking of {__instance.playerUsername}({__instance.NetworkObjectId}):\n{ex}");
                 }
             }
         }

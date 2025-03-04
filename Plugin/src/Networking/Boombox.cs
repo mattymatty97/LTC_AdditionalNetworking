@@ -23,6 +23,13 @@ public static class Boombox
             OnRequestSyncServerRpc);
     }
 
+    internal static void UnregisterMessages()
+    {
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(SyncStateServerRpcMessage);
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(SyncStateClientRpcMessage);
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(RequestSyncServerRpcMessage);
+    }
+
     public static void SyncStateServerRpc(NetworkObjectReference boomboxReference, bool playing, int track)
     {
         var buffer = new FastBufferWriter(1024, Allocator.Temp);
@@ -38,19 +45,26 @@ public static class Boombox
         if (!NetworkManager.Singleton.IsServer)
             return;
 
-        data.ReadNetworkSerializable(out NetworkObjectReference boomboxReference);
-        data.ReadValue(out bool playing);
-        data.ReadValue(out int track);
+        try
+        {
+            data.ReadNetworkSerializable(out NetworkObjectReference boomboxReference);
+            data.ReadValue(out bool playing);
+            data.ReadValue(out int track);
 
-        if (!boomboxReference.TryGet(out var networkObject) ||
-            (senderId != NetworkManager.ServerClientId && networkObject.OwnerClientId != senderId))
-            return;
+            if (!boomboxReference.TryGet(out var networkObject) ||
+                (senderId != NetworkManager.ServerClientId && networkObject.OwnerClientId != senderId))
+                return;
 
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(Boombox)}.SyncStateServerRpc was called for {boomboxReference.NetworkObjectId}! track: {track}, playing: {playing}");
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(Boombox)}.SyncStateServerRpc was called for {boomboxReference.NetworkObjectId}! track: {track}, playing: {playing}");
 
-        SyncStateClientRpc(boomboxReference, playing, track);
+            SyncStateClientRpc(boomboxReference, playing, track);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 
     private static void SyncStateClientRpc(NetworkObjectReference boomboxReference, bool playing, int track,
@@ -69,43 +83,50 @@ public static class Boombox
 
     private static void OnSyncStateClientRpc(ulong senderId, FastBufferReader data)
     {
-        data.ReadNetworkSerializable(out NetworkObjectReference boomboxReference);
-        data.ReadValue(out bool playing);
-        data.ReadValue(out int track);
-
-        if (!boomboxReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
-            return;
-
-        var boomboxItem = ((GameObject)boomboxReference).GetComponent<BoomboxItem>();
-        var oldTrack = Array.IndexOf(boomboxItem.musicAudios, boomboxItem.boomboxAudio.clip);
-        var oldState = boomboxItem.isPlayingMusic;
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(Boombox)}.SyncStateClientRpc was called for {boomboxReference.NetworkObjectId}! track: {track}, playing: {playing} was track: {oldTrack}, playing: {oldState}");
-
-        if (boomboxItem.IsOwner)
-            return;
-
-        //if we need to stop playing
-        if (!playing)
+        try
         {
-            //if it was already off do nothing
-            if (oldState)
-                boomboxItem.StartMusic(false);
-            return;
+            data.ReadNetworkSerializable(out NetworkObjectReference boomboxReference);
+            data.ReadValue(out bool playing);
+            data.ReadValue(out int track);
+
+            if (!boomboxReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
+                return;
+
+            var boomboxItem = ((GameObject)boomboxReference).GetComponent<BoomboxItem>();
+            var oldTrack = Array.IndexOf(boomboxItem.musicAudios, boomboxItem.boomboxAudio.clip);
+            var oldState = boomboxItem.isPlayingMusic;
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(Boombox)}.SyncStateClientRpc was called for {boomboxReference.NetworkObjectId}! track: {track}, playing: {playing} was track: {oldTrack}, playing: {oldState}");
+
+            if (boomboxItem.IsOwner)
+                return;
+
+            //if we need to stop playing
+            if (!playing)
+            {
+                //if it was already off do nothing
+                if (oldState)
+                    boomboxItem.StartMusic(false);
+                return;
+            }
+
+            //if all is fine do nothing
+            if (track == -1 || (oldState && oldTrack == track))
+                return;
+
+            //make sure we play the right track!
+            boomboxItem.isPlayingMusic = true;
+            boomboxItem.isBeingUsed = true;
+            boomboxItem.boomboxAudio.Stop();
+            boomboxItem.boomboxAudio.clip = boomboxItem.musicAudios[track];
+            boomboxItem.boomboxAudio.pitch = 1f;
+            boomboxItem.boomboxAudio.Play();
         }
-
-        //if all is fine do nothing
-        if (track == -1 || (oldState && oldTrack == track))
-            return;
-
-        //make sure we play the right track!
-        boomboxItem.isPlayingMusic = true;
-        boomboxItem.isBeingUsed = true;
-        boomboxItem.boomboxAudio.Stop();
-        boomboxItem.boomboxAudio.clip = boomboxItem.musicAudios[track];
-        boomboxItem.boomboxAudio.pitch = 1f;
-        boomboxItem.boomboxAudio.Play();
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 
 
@@ -121,20 +142,26 @@ public static class Boombox
     {
         if (!NetworkManager.Singleton.IsServer)
             return;
+        try
+        {
+            data.ReadNetworkSerializable(out NetworkObjectReference boomboxReference);
 
-        data.ReadNetworkSerializable(out NetworkObjectReference boomboxReference);
+            if (!boomboxReference.TryGet(out _))
+                return;
 
-        if (!boomboxReference.TryGet(out _))
-            return;
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(Boombox)}.RequestSyncServerRpc was called for {boomboxReference.NetworkObjectId} by {senderId}!");
 
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(Boombox)}.RequestSyncServerRpc was called for {boomboxReference.NetworkObjectId} by {senderId}!");
+            var boomboxItem = ((GameObject)boomboxReference).GetComponent<BoomboxItem>();
 
-        var boomboxItem = ((GameObject)boomboxReference).GetComponent<BoomboxItem>();
-
-        var track = Array.IndexOf(boomboxItem.musicAudios, boomboxItem.boomboxAudio.clip);
-        var state = boomboxItem.isPlayingMusic;
-        SyncStateClientRpc(boomboxReference, state, track, [senderId]);
+            var track = Array.IndexOf(boomboxItem.musicAudios, boomboxItem.boomboxAudio.clip);
+            var state = boomboxItem.isPlayingMusic;
+            SyncStateClientRpc(boomboxReference, state, track, [senderId]);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 }

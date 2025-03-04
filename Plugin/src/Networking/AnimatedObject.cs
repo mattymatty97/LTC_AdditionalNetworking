@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using System;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using LogLevel = BepInEx.Logging.LogLevel;
@@ -37,18 +38,25 @@ public static class AnimatedObject
         if (!NetworkManager.Singleton.IsServer)
             return;
 
-        data.ReadNetworkSerializable(out NetworkObjectReference itemReference);
-        data.ReadValue(out bool playing);
+        try
+        {
+            data.ReadNetworkSerializable(out NetworkObjectReference itemReference);
+            data.ReadValue(out bool playing);
 
-        if (!itemReference.TryGet(out var networkObject) ||
-            (senderId != NetworkManager.ServerClientId && networkObject.OwnerClientId != senderId))
-            return;
+            if (!itemReference.TryGet(out var networkObject) ||
+                (senderId != NetworkManager.ServerClientId && networkObject.OwnerClientId != senderId))
+                return;
 
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(AnimatedObject)}.SyncStateServerRpc was called for {itemReference.NetworkObjectId}! playing: {playing}");
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(AnimatedObject)}.SyncStateServerRpc was called for {itemReference.NetworkObjectId}! playing: {playing}");
 
-        SyncStateClientRpc(itemReference, playing);
+            SyncStateClientRpc(itemReference, playing);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 
     private static void SyncStateClientRpc(NetworkObjectReference itemReference, bool playing,
@@ -67,34 +75,41 @@ public static class AnimatedObject
 
     private static void OnSyncAudioStateClientRpc(ulong senderId, FastBufferReader data)
     {
-        data.ReadNetworkSerializable(out NetworkObjectReference itemReference);
-        data.ReadValue(out bool playing);
-
-        if (!itemReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
-            return;
-
-        var animatedItem = ((GameObject)itemReference).GetComponent<AnimatedItem>();
-        var oldState = animatedItem.itemAudio.isPlaying;
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(Boombox)}.SyncStateClientRpc was called for {itemReference.NetworkObjectId}! playing: {playing} was: {oldState}");
-
-        if (animatedItem.IsOwner)
-            return;
-
-        if (playing == oldState)
-            return;
-
-        var itemAudio = animatedItem.itemAudio;
-
-        if (playing)
+        try
         {
-            itemAudio.clip = animatedItem.grabAudio;
-            itemAudio.loop = animatedItem.loopGrabAudio;
-            itemAudio.Play();
+            data.ReadNetworkSerializable(out NetworkObjectReference itemReference);
+            data.ReadValue(out bool playing);
+
+            if (!itemReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
+                return;
+
+            var animatedItem = ((GameObject)itemReference).GetComponent<AnimatedItem>();
+            var oldState = animatedItem.itemAudio.isPlaying;
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(Boombox)}.SyncStateClientRpc was called for {itemReference.NetworkObjectId}! playing: {playing} was: {oldState}");
+
+            if (animatedItem.IsOwner)
+                return;
+
+            if (playing == oldState)
+                return;
+
+            var itemAudio = animatedItem.itemAudio;
+
+            if (playing)
+            {
+                itemAudio.clip = animatedItem.grabAudio;
+                itemAudio.loop = animatedItem.loopGrabAudio;
+                itemAudio.Play();
+            }
+            else
+                itemAudio.Stop();
         }
-        else
-            itemAudio.Stop();
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 
 
@@ -111,18 +126,25 @@ public static class AnimatedObject
         if (!NetworkManager.Singleton.IsServer)
             return;
 
-        data.ReadNetworkSerializable(out NetworkObjectReference itemReference);
+        try
+        {
+            data.ReadNetworkSerializable(out NetworkObjectReference itemReference);
 
-        if (!itemReference.TryGet(out _))
-            return;
+            if (!itemReference.TryGet(out _))
+                return;
 
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(Boombox)}.RequestSyncServerRpc was called for {itemReference.NetworkObjectId} by {senderId}!");
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(Boombox)}.RequestSyncServerRpc was called for {itemReference.NetworkObjectId} by {senderId}!");
 
-        var animatedItem = ((GameObject)itemReference).GetComponent<AnimatedItem>();
+            var animatedItem = ((GameObject)itemReference).GetComponent<AnimatedItem>();
 
-        var state = animatedItem.itemAudio.isPlaying;
-        SyncStateClientRpc(itemReference, state, [senderId]);
+            var state = animatedItem.itemAudio.isPlaying;
+            SyncStateClientRpc(itemReference, state, [senderId]);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 }

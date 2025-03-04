@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using System;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using LogLevel = BepInEx.Logging.LogLevel;
@@ -28,6 +29,15 @@ public static class Shotgun
             OnRequestSyncServerRpc);
     }
 
+    internal static void UnregisterMessages()
+    {
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(SyncAmmoServerRpcMessage);
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(SyncAmmoClientRpcMessage);
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(SyncSafetyServerRpcMessage);
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(SyncSafetyClientRpcMessage);
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(RequestSyncServerRpcMessage);
+    }
+
     public static void SyncAmmoServerRpc(NetworkObjectReference shotgunReference, int ammoCount)
     {
         var buffer = new FastBufferWriter(1024, Allocator.Temp);
@@ -42,18 +52,25 @@ public static class Shotgun
         if (!NetworkManager.Singleton.IsServer)
             return;
 
-        data.ReadNetworkSerializable(out NetworkObjectReference shotgunReference);
-        data.ReadValue(out int ammoCount);
+        try
+        {
+            data.ReadNetworkSerializable(out NetworkObjectReference shotgunReference);
+            data.ReadValue(out int ammoCount);
 
-        if (!shotgunReference.TryGet(out var networkObject) ||
-            (senderId != NetworkManager.ServerClientId && networkObject.OwnerClientId != senderId))
-            return;
+            if (!shotgunReference.TryGet(out var networkObject) ||
+                (senderId != NetworkManager.ServerClientId && networkObject.OwnerClientId != senderId))
+                return;
 
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(Shotgun)}.SyncAmmoServerRpc was called for {shotgunReference.NetworkObjectId}! ammo: {ammoCount}");
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(Shotgun)}.SyncAmmoServerRpc was called for {shotgunReference.NetworkObjectId}! ammo: {ammoCount}");
 
-        SyncAmmoClientRpc(shotgunReference, ammoCount);
+            SyncAmmoClientRpc(shotgunReference, ammoCount);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 
 
@@ -71,36 +88,43 @@ public static class Shotgun
 
     private static void OnSyncAmmoClientRpc(ulong senderId, FastBufferReader data)
     {
-        data.ReadNetworkSerializable(out NetworkObjectReference shotgunReference);
-        data.ReadValue(out int ammoCount);
-
-        if (!shotgunReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
-            return;
-
-        var shotgunItem = ((GameObject)shotgunReference).GetComponent<ShotgunItem>();
-
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(Shotgun)}.SyncAmmoClientRpc was called for {shotgunReference.NetworkObjectId}! ammo: {ammoCount} was: {shotgunItem.shellsLoaded}");
-
-        if (shotgunItem.IsOwner)
-            return;
-
-        shotgunItem.shellsLoaded = ammoCount;
-        switch (ammoCount)
+        try
         {
-            case 0:
-                shotgunItem.shotgunShellLeft.enabled = false;
-                shotgunItem.shotgunShellRight.enabled = false;
-                break;
-            case 1:
-                shotgunItem.shotgunShellLeft.enabled = true;
-                shotgunItem.shotgunShellRight.enabled = false;
-                break;
-            default:
-                shotgunItem.shotgunShellLeft.enabled = true;
-                shotgunItem.shotgunShellRight.enabled = true;
-                break;
+            data.ReadNetworkSerializable(out NetworkObjectReference shotgunReference);
+            data.ReadValue(out int ammoCount);
+
+            if (!shotgunReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
+                return;
+
+            var shotgunItem = ((GameObject)shotgunReference).GetComponent<ShotgunItem>();
+
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(Shotgun)}.SyncAmmoClientRpc was called for {shotgunReference.NetworkObjectId}! ammo: {ammoCount} was: {shotgunItem.shellsLoaded}");
+
+            if (shotgunItem.IsOwner)
+                return;
+
+            shotgunItem.shellsLoaded = ammoCount;
+            switch (ammoCount)
+            {
+                case 0:
+                    shotgunItem.shotgunShellLeft.enabled = false;
+                    shotgunItem.shotgunShellRight.enabled = false;
+                    break;
+                case 1:
+                    shotgunItem.shotgunShellLeft.enabled = true;
+                    shotgunItem.shotgunShellRight.enabled = false;
+                    break;
+                default:
+                    shotgunItem.shotgunShellLeft.enabled = true;
+                    shotgunItem.shotgunShellRight.enabled = true;
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
         }
     }
 
@@ -117,19 +141,25 @@ public static class Shotgun
     {
         if (!NetworkManager.Singleton.IsServer)
             return;
+        try
+        {
+            data.ReadNetworkSerializable(out NetworkObjectReference shotgunReference);
+            data.ReadValue(out bool safety);
 
-        data.ReadNetworkSerializable(out NetworkObjectReference shotgunReference);
-        data.ReadValue(out bool safety);
+            if (!shotgunReference.TryGet(out var networkObject) ||
+                (senderId != NetworkManager.ServerClientId && networkObject.OwnerClientId != senderId))
+                return;
 
-        if (!shotgunReference.TryGet(out var networkObject) ||
-            (senderId != NetworkManager.ServerClientId && networkObject.OwnerClientId != senderId))
-            return;
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(Shotgun)}.SyncSafetyServerRpc was called for {shotgunReference.NetworkObjectId}! safety:{(safety ? "on" : "off")}");
 
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(Shotgun)}.SyncSafetyServerRpc was called for {shotgunReference.NetworkObjectId}! safety:{(safety ? "on" : "off")}");
-
-        SyncSafetyClientRpc(shotgunReference, safety);
+            SyncSafetyClientRpc(shotgunReference, safety);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 
 
@@ -148,22 +178,29 @@ public static class Shotgun
 
     private static void OnSyncSafetyClientRpc(ulong senderId, FastBufferReader data)
     {
-        data.ReadNetworkSerializable(out NetworkObjectReference shotgunReference);
-        data.ReadValue(out bool safety);
+        try
+        {
+            data.ReadNetworkSerializable(out NetworkObjectReference shotgunReference);
+            data.ReadValue(out bool safety);
 
-        if (!shotgunReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
-            return;
+            if (!shotgunReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
+                return;
 
-        var shotgunItem = ((GameObject)shotgunReference).GetComponent<ShotgunItem>();
+            var shotgunItem = ((GameObject)shotgunReference).GetComponent<ShotgunItem>();
 
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(Shotgun)}.SyncSafetyClientRpc was called for {shotgunReference.NetworkObjectId}! safety:{(safety ? "on" : "off")} was: {(shotgunItem.safetyOn ? "on" : "off")}");
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(Shotgun)}.SyncSafetyClientRpc was called for {shotgunReference.NetworkObjectId}! safety:{(safety ? "on" : "off")} was: {(shotgunItem.safetyOn ? "on" : "off")}");
 
-        if (shotgunItem.IsOwner)
-            return;
+            if (shotgunItem.IsOwner)
+                return;
 
-        shotgunItem.safetyOn = safety;
+            shotgunItem.safetyOn = safety;
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 
     public static void RequestSyncServerRpc(NetworkObjectReference shotgunReference)
@@ -178,19 +215,25 @@ public static class Shotgun
     {
         if (!NetworkManager.Singleton.IsServer)
             return;
+        try
+        {
+            data.ReadNetworkSerializable(out NetworkObjectReference shotgunReference);
 
-        data.ReadNetworkSerializable(out NetworkObjectReference shotgunReference);
+            if (!shotgunReference.TryGet(out _))
+                return;
 
-        if (!shotgunReference.TryGet(out _))
-            return;
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(Shotgun)}.RequestSyncServerRpc was called for {shotgunReference.NetworkObjectId} by {senderId}!");
 
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(Shotgun)}.RequestSyncServerRpc was called for {shotgunReference.NetworkObjectId} by {senderId}!");
+            var shotgunItem = ((GameObject)shotgunReference).GetComponent<ShotgunItem>();
 
-        var shotgunItem = ((GameObject)shotgunReference).GetComponent<ShotgunItem>();
-
-        SyncAmmoClientRpc(shotgunReference, shotgunItem.shellsLoaded, [senderId]);
-        SyncSafetyClientRpc(shotgunReference, shotgunItem.safetyOn, [senderId]);
+            SyncAmmoClientRpc(shotgunReference, shotgunItem.shellsLoaded, [senderId]);
+            SyncSafetyClientRpc(shotgunReference, shotgunItem.safetyOn, [senderId]);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using GameNetcodeStuff;
 using TMPro;
@@ -51,6 +52,25 @@ public static class PlayerController
             OnRequestSyncUsernameServerRpc);
     }
 
+    internal static void UnregisterMessages()
+    {
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(SyncInventoryServerRpcMessage);
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(SyncInventoryClientRpcMessage);
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(ThrowExtraItemsClientRpcMessage);
+
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(SyncSelectedSlotServerRpcMessage);
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(SyncSelectedSlotClientRpcMessage);
+
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(SyncCrouchServerRpcMessage);
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(SyncCrouchClientRpcMessage);
+
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(SyncUsernameServerRpcMessage);
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(SyncUsernameClientRpcMessage);
+
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(
+            RequestSyncUsernameServerRpcMessage);
+    }
+
 
     public static void SyncInventoryServerRpc(NetworkObjectReference controllerReference,
         NetworkObjectReference[] inventory, int[] slots)
@@ -67,38 +87,44 @@ public static class PlayerController
     {
         if (!NetworkManager.Singleton.IsServer)
             return;
+        try
+        {
+            data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
+            data.ReadNetworkSerializable(out NetworkObjectReference[] inventory);
+            data.ReadValue(out int[] slots);
 
-        data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
-        data.ReadNetworkSerializable(out NetworkObjectReference[] inventory);
-        data.ReadValue(out int[] slots);
+            if (!controllerReference.TryGet(out var networkObject) || networkObject.OwnerClientId != senderId)
+                return;
 
-        if (!controllerReference.TryGet(out var networkObject) || networkObject.OwnerClientId != senderId)
-            return;
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(PlayerController)}.syncInventoryServerRpc was called for {controllerReference.NetworkObjectId}!");
 
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(PlayerController)}.syncInventoryServerRpc was called for {controllerReference.NetworkObjectId}!");
+            var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
+            //limit the list to the max slots of the server
+            var valid = new List<NetworkObjectReference>();
+            var validIds = new List<int>();
 
-        var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
-        //limit the list to the max slots of the server
-        var valid = new List<NetworkObjectReference>();
-        var validIds = new List<int>();
+            var extra = new List<NetworkObjectReference>();
 
-        var extra = new List<NetworkObjectReference>();
+            for (var index = 0; index < slots.Length; index++)
+                if (slots[index] < controllerB.ItemSlots.Length)
+                {
+                    valid.Add(inventory[index]);
+                    validIds.Add(slots[index]);
+                }
+                else
+                {
+                    extra.Add(inventory[index]);
+                }
 
-        for (var index = 0; index < slots.Length; index++)
-            if (slots[index] < controllerB.ItemSlots.Length)
-            {
-                valid.Add(inventory[index]);
-                validIds.Add(slots[index]);
-            }
-            else
-            {
-                extra.Add(inventory[index]);
-            }
-
-        SyncInventoryClientRpc(controllerReference, valid.ToArray(), validIds.ToArray());
-        if (extra.Count > 0) ThrowExtraItemsClientRpc(controllerReference, extra.ToArray(), [senderId]);
+            SyncInventoryClientRpc(controllerReference, valid.ToArray(), validIds.ToArray());
+            if (extra.Count > 0) ThrowExtraItemsClientRpc(controllerReference, extra.ToArray(), [senderId]);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 
     private static void SyncInventoryClientRpc(NetworkObjectReference controllerReference,
@@ -119,40 +145,47 @@ public static class PlayerController
 
     private static void OnSyncInventoryClientRpc(ulong senderId, FastBufferReader data)
     {
-        data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
-        data.ReadNetworkSerializable(out NetworkObjectReference[] inventory);
-        data.ReadValue(out int[] slots);
-
-        if (!controllerReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
-            return;
-
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(PlayerController)}.syncInventoryClientRpc was called for {controllerReference.NetworkObjectId}!");
-
-        var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
-
-        if (controllerB.IsOwner)
-            return;
-
-        //flush the inventory
-        controllerB.ItemSlots = new global::GrabbableObject[controllerB.ItemSlots.Length];
-
-        for (var index = 0; index < inventory.Length; index++)
+        try
         {
-            var slot = slots[index];
-            var networkObjectReference = inventory[index];
-            if (slot < controllerB.ItemSlots.Length)
-            {
-                if (networkObjectReference.TryGet(out var networkObject) &&
-                    networkObject.TryGetComponent<global::GrabbableObject>(out var grabbableObject))
-                    controllerB.ItemSlots[slot] = grabbableObject;
-                else
-                    controllerB.ItemSlots[slot] = null;
-            }
-        }
+            data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
+            data.ReadNetworkSerializable(out NetworkObjectReference[] inventory);
+            data.ReadValue(out int[] slots);
 
-        controllerB.SwitchToItemSlot(controllerB.currentItemSlot);
+            if (!controllerReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
+                return;
+
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(PlayerController)}.syncInventoryClientRpc was called for {controllerReference.NetworkObjectId}!");
+
+            var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
+
+            if (controllerB.IsOwner)
+                return;
+
+            //flush the inventory
+            controllerB.ItemSlots = new global::GrabbableObject[controllerB.ItemSlots.Length];
+
+            for (var index = 0; index < inventory.Length; index++)
+            {
+                var slot = slots[index];
+                var networkObjectReference = inventory[index];
+                if (slot < controllerB.ItemSlots.Length)
+                {
+                    if (networkObjectReference.TryGet(out var networkObject) &&
+                        networkObject.TryGetComponent<global::GrabbableObject>(out var grabbableObject))
+                        controllerB.ItemSlots[slot] = grabbableObject;
+                    else
+                        controllerB.ItemSlots[slot] = null;
+                }
+            }
+
+            controllerB.SwitchToItemSlot(controllerB.currentItemSlot);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 
 
@@ -172,26 +205,33 @@ public static class PlayerController
 
     private static void OnThrowExtraItemsClientRpc(ulong senderId, FastBufferReader data)
     {
-        data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
-        data.ReadNetworkSerializable(out NetworkObjectReference[] objectsToThrow);
+        try
+        {
+            data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
+            data.ReadNetworkSerializable(out NetworkObjectReference[] objectsToThrow);
 
-        if (!controllerReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
-            return;
+            if (!controllerReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
+                return;
 
-        AdditionalNetworking.Log.LogWarning(
-            $"{nameof(PlayerController)}.throwExtraItemsClientRpc was called for {controllerReference.NetworkObjectId}!");
+            AdditionalNetworking.Log.LogWarning(
+                $"{nameof(PlayerController)}.throwExtraItemsClientRpc was called for {controllerReference.NetworkObjectId}!");
 
-        var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
+            var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
 
-        if (!controllerB.IsOwner)
-            return;
+            if (!controllerB.IsOwner)
+                return;
 
-        foreach (var networkObjectReference in objectsToThrow)
-            if (networkObjectReference.TryGet(out var networkObject) &&
-                networkObject.TryGetComponent<global::GrabbableObject>(out _))
-                controllerB.ThrowObjectServerRpc(networkObjectReference, controllerB.isInElevator,
-                    controllerB.isInHangarShipRoom, controllerB.transform.position,
-                    (int)controllerB.transform.eulerAngles.y);
+            foreach (var networkObjectReference in objectsToThrow)
+                if (networkObjectReference.TryGet(out var networkObject) &&
+                    networkObject.TryGetComponent<global::GrabbableObject>(out _))
+                    controllerB.ThrowObjectServerRpc(networkObjectReference, controllerB.isInElevator,
+                        controllerB.isInHangarShipRoom, controllerB.transform.position,
+                        (int)controllerB.transform.eulerAngles.y);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 
     public static void SyncSelectedSlotServerRpc(NetworkObjectReference controllerReference, int selectedSlot)
@@ -210,25 +250,32 @@ public static class PlayerController
         if (!NetworkManager.Singleton.IsServer)
             return;
 
-        data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
-        data.ReadValue(out int selectedSlot);
-
-        if (!controllerReference.TryGet(out var networkObject) || networkObject.OwnerClientId != senderId)
-            return;
-
-        var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
-        if (selectedSlot < 0 || selectedSlot >= controllerB.ItemSlots.Length)
+        try
         {
-            AdditionalNetworking.Log.LogWarning(
-                $"Invalid {nameof(PlayerController)}.syncSelectedSlotServerRpc was called for {controllerReference.NetworkObjectId}, Ignored! slot:{selectedSlot}");
-            return;
+            data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
+            data.ReadValue(out int selectedSlot);
+
+            if (!controllerReference.TryGet(out var networkObject) || networkObject.OwnerClientId != senderId)
+                return;
+
+            var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
+            if (selectedSlot < 0 || selectedSlot >= controllerB.ItemSlots.Length)
+            {
+                AdditionalNetworking.Log.LogWarning(
+                    $"Invalid {nameof(PlayerController)}.syncSelectedSlotServerRpc was called for {controllerReference.NetworkObjectId}, Ignored! slot:{selectedSlot}");
+                return;
+            }
+
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(PlayerController)}.syncSelectedSlotServerRpc was called for {controllerReference.NetworkObjectId}! slot:{selectedSlot}");
+
+            SyncSelectedSlotClientRpc(controllerReference, selectedSlot);
         }
-
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(PlayerController)}.syncSelectedSlotServerRpc was called for {controllerReference.NetworkObjectId}! slot:{selectedSlot}");
-
-        SyncSelectedSlotClientRpc(controllerReference, selectedSlot);
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 
 
@@ -248,22 +295,29 @@ public static class PlayerController
 
     private static void OnSyncSelectedSlotClientRpc(ulong senderId, FastBufferReader data)
     {
-        data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
-        data.ReadValue(out int selectedSlot);
+        try
+        {
+            data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
+            data.ReadValue(out int selectedSlot);
 
-        if (!controllerReference.TryGet(out _) || NetworkManager.ServerClientId != senderId)
-            return;
+            if (!controllerReference.TryGet(out _) || NetworkManager.ServerClientId != senderId)
+                return;
 
-        var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(PlayerController)}.syncSelectedSlotClientRpc was called for {controllerReference.NetworkObjectId}! slot:{selectedSlot} was:{controllerB.currentItemSlot}");
+            var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(PlayerController)}.syncSelectedSlotClientRpc was called for {controllerReference.NetworkObjectId}! slot:{selectedSlot} was:{controllerB.currentItemSlot}");
 
-        if (controllerB.IsOwner)
-            return;
+            if (controllerB.IsOwner)
+                return;
 
-        if (controllerB.currentItemSlot != selectedSlot)
-            controllerB.SwitchToItemSlot(selectedSlot);
+            if (controllerB.currentItemSlot != selectedSlot)
+                controllerB.SwitchToItemSlot(selectedSlot);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 
     public static void SyncCrouchServerRpc(NetworkObjectReference controllerReference, bool safety)
@@ -280,18 +334,25 @@ public static class PlayerController
         if (!NetworkManager.Singleton.IsServer)
             return;
 
-        data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
-        data.ReadValue(out bool crouched);
+        try
+        {
+            data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
+            data.ReadValue(out bool crouched);
 
-        if (!controllerReference.TryGet(out var networkObject) ||
-            (senderId != NetworkManager.ServerClientId && networkObject.OwnerClientId != senderId))
-            return;
+            if (!controllerReference.TryGet(out var networkObject) ||
+                (senderId != NetworkManager.ServerClientId && networkObject.OwnerClientId != senderId))
+                return;
 
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(PlayerController)}.SyncCrouchServerRpc was called for {controllerReference.NetworkObjectId}! crouched:{(crouched ? "yes" : "no")}");
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(PlayerController)}.SyncCrouchServerRpc was called for {controllerReference.NetworkObjectId}! crouched:{(crouched ? "yes" : "no")}");
 
-        SyncCrouchClientRpc(controllerReference, crouched);
+            SyncCrouchClientRpc(controllerReference, crouched);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 
 
@@ -310,22 +371,29 @@ public static class PlayerController
 
     private static void OnSyncCrouchClientRpc(ulong senderId, FastBufferReader data)
     {
-        data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
-        data.ReadValue(out bool crouched);
+        try
+        {
+            data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
+            data.ReadValue(out bool crouched);
 
-        if (!controllerReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
-            return;
+            if (!controllerReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
+                return;
 
-        var controller = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
+            var controller = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
 
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(Shotgun)}.SyncCrouchClientRpc was called for {controllerReference.NetworkObjectId}! safety:{(crouched ? "yes" : "no")} was: {(controller.isCrouching ? "yes" : "no")}");
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(Shotgun)}.SyncCrouchClientRpc was called for {controllerReference.NetworkObjectId}! safety:{(crouched ? "yes" : "no")} was: {(controller.isCrouching ? "yes" : "no")}");
 
-        if (controller.IsOwner)
-            return;
+            if (controller.IsOwner)
+                return;
 
-        controller.isCrouching = crouched;
+            controller.isCrouching = crouched;
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 
     public static void SyncUsernameServerRpc(NetworkObjectReference controllerReference, string username)
@@ -341,18 +409,24 @@ public static class PlayerController
     {
         if (!NetworkManager.Singleton.IsServer)
             return;
+        try
+        {
+            data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
+            data.ReadValue(out string username);
 
-        data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
-        data.ReadValue(out string username);
+            if (!controllerReference.TryGet(out var networkObject) ||
+                (senderId != NetworkManager.ServerClientId && networkObject.OwnerClientId != senderId))
+                return;
 
-        if (!controllerReference.TryGet(out var networkObject) ||
-            (senderId != NetworkManager.ServerClientId && networkObject.OwnerClientId != senderId))
-            return;
+            AdditionalNetworking.Log.LogDebug(
+                $"{nameof(PlayerController)}.syncUsernameServerRpc was called for {controllerReference.NetworkObjectId}!");
 
-        AdditionalNetworking.Log.LogDebug(
-            $"{nameof(PlayerController)}.syncUsernameServerRpc was called for {controllerReference.NetworkObjectId}!");
-
-        SyncUsernameClientRpc(controllerReference, username);
+            SyncUsernameClientRpc(controllerReference, username);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 
 
@@ -371,27 +445,34 @@ public static class PlayerController
 
     private static void OnSyncUsernameClientRpc(ulong senderId, FastBufferReader data)
     {
-        data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
-        data.ReadValue(out string username);
-
-        if (!controllerReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
-            return;
-
-        AdditionalNetworking.Log.LogDebug(
-            $"{nameof(PlayerController)}.syncUsernameClientRpc was called for {controllerReference.NetworkObjectId}!");
-        var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
-        if (controllerB.IsOwner)
-            return;
-        controllerB.playerUsername = username;
-        controllerB.usernameBillboardText.text = username;
-
-        StartOfRound.Instance.mapScreen.ChangeNameOfTargetTransform(controllerB.transform, username);
-
-        if (HUDManager.Instance.spectatingPlayerBoxes.ContainsValue(controllerB))
+        try
         {
-            var spectatorBox = HUDManager.Instance.spectatingPlayerBoxes.First(x => x.Value == controllerB)
-                .Key.gameObject;
-            spectatorBox.GetComponentInChildren<TextMeshProUGUI>().text = username;
+            data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
+            data.ReadValue(out string username);
+
+            if (!controllerReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
+                return;
+
+            AdditionalNetworking.Log.LogDebug(
+                $"{nameof(PlayerController)}.syncUsernameClientRpc was called for {controllerReference.NetworkObjectId}!");
+            var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
+            if (controllerB.IsOwner)
+                return;
+            controllerB.playerUsername = username;
+            controllerB.usernameBillboardText.text = username;
+
+            StartOfRound.Instance.mapScreen.ChangeNameOfTargetTransform(controllerB.transform, username);
+
+            if (HUDManager.Instance.spectatingPlayerBoxes.ContainsValue(controllerB))
+            {
+                var spectatorBox = HUDManager.Instance.spectatingPlayerBoxes.First(x => x.Value == controllerB)
+                    .Key.gameObject;
+                spectatorBox.GetComponentInChildren<TextMeshProUGUI>().text = username;
+            }
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
         }
     }
 
@@ -408,19 +489,26 @@ public static class PlayerController
         if (!NetworkManager.Singleton.IsServer)
             return;
 
-        data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
+        try
+        {
+            data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
 
-        if (!controllerReference.TryGet(out _))
-            return;
+            if (!controllerReference.TryGet(out _))
+                return;
 
-        AdditionalNetworking.Log.LogDebug(
-            $"{nameof(PlayerController)}.requestSyncUsernameServerRpc was called for {controllerReference.NetworkObjectId} by {senderId}!");
-        var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
-        //only send update if player is connected!
+            AdditionalNetworking.Log.LogDebug(
+                $"{nameof(PlayerController)}.requestSyncUsernameServerRpc was called for {controllerReference.NetworkObjectId} by {senderId}!");
+            var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
+            //only send update if player is connected!
 
-        if (controllerB.IsOwnedByServer)
-            return;
+            if (controllerB.IsOwnedByServer)
+                return;
 
-        SyncUsernameClientRpc(controllerReference, controllerB.playerUsername, [senderId]);
+            SyncUsernameClientRpc(controllerReference, controllerB.playerUsername, [senderId]);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 }

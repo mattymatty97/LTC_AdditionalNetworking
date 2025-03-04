@@ -33,8 +33,8 @@ internal class ShotgunItemPatch
         catch (Exception ex)
         {
             var itemTag = ItemCategory.GetKeyForItem(__instance.itemProperties);
-            AdditionalNetworking.Log.LogFatal(
-                $"Exception syncing status of {itemTag}({__instance.NetworkObjectId}):\n{ex}");
+            AdditionalNetworking.Log.LogError(
+                $"Exception during networking of {itemTag}({__instance.NetworkObjectId}): {ex}");
         }
     }
 
@@ -110,8 +110,8 @@ internal class ShotgunItemPatch
                 catch (Exception ex)
                 {
                     var itemTag = ItemCategory.GetKeyForItem(__instance.itemProperties);
-                    AdditionalNetworking.Log.LogFatal(
-                        $"Exception syncing ammo of {itemTag}({__instance.NetworkObjectId}):\n{ex}");
+                    AdditionalNetworking.Log.LogError(
+                        $"Exception during networking of {itemTag}({__instance.NetworkObjectId}): {ex}");
                 }
             }
         }
@@ -129,8 +129,8 @@ internal class ShotgunItemPatch
                 catch (Exception ex)
                 {
                     var itemTag = ItemCategory.GetKeyForItem(__instance.itemProperties);
-                    AdditionalNetworking.Log.LogFatal(
-                        $"Exception syncing safety of {itemTag}({__instance.NetworkObjectId}):\n{ex}");
+                    AdditionalNetworking.Log.LogError(
+                        $"Exception during networking of {itemTag}({__instance.NetworkObjectId}): {ex}");
                 }
             }
         }

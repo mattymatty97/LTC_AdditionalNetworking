@@ -15,7 +15,17 @@ internal class BoomboxItemPatch
         if (!AdditionalNetworking.PluginConfig.ItemState.Boombox.Value)
             return;
 
-        if (!StartOfRound.Instance.IsServer) Boombox.RequestSyncServerRpc(__instance.NetworkObject);
+        if (StartOfRound.Instance.IsServer)
+            return;
+
+        try
+        {
+            Boombox.RequestSyncServerRpc(__instance.NetworkObject);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 
     [HarmonyFinalizer]
@@ -67,8 +77,8 @@ internal class BoomboxItemPatch
         catch (Exception ex)
         {
             var itemTag = ItemCategory.GetKeyForItem(__instance.itemProperties);
-            AdditionalNetworking.Log.LogFatal(
-                $"Exception syncing boombox state of {itemTag}({__instance.NetworkObjectId}):\n{ex}");
+            AdditionalNetworking.Log.LogError(
+                $"Exception during networking of {itemTag}({__instance.NetworkObjectId}): {ex}");
         }
     }
 }

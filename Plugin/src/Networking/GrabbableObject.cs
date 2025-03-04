@@ -1,4 +1,5 @@
-﻿using AdditionalNetworking.Utils;
+﻿using System;
+using AdditionalNetworking.Utils;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -20,6 +21,12 @@ public static class GrabbableObject
             OnRequestSyncServerRpc);
     }
 
+    internal static void UnregisterMessages()
+    {
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(SyncValuesClientRpcMessage);
+        NetworkManager.Singleton.CustomMessagingManager.UnregisterNamedMessageHandler(RequestSyncServerRpcMessage);
+    }
+
     private static void SyncValuesClientRpc(NetworkObjectReference grabbableReference, int scrapValue, int dataValue,
         ulong[] targets = default)
     {
@@ -36,37 +43,44 @@ public static class GrabbableObject
 
     private static void OnSyncValuesClientRpc(ulong senderId, FastBufferReader data)
     {
-        data.ReadNetworkSerializable(out NetworkObjectReference grabbableReference);
-        data.ReadValue(out int scrapValue);
-        data.ReadValue(out int dataValue);
-
-        if (!grabbableReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
-            return;
-
-        var grabbableObject = ((GameObject)grabbableReference).GetComponent<global::GrabbableObject>();
-
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(GrabbableObject)}.SyncValuesClientRpc was called for {grabbableReference.NetworkObjectId}! scrap: {scrapValue}, data: {dataValue}");
-
-        if (grabbableObject.itemProperties.saveItemVariable) grabbableObject.LoadItemSaveData(dataValue);
-
-        var itemTag = ItemCategory.GetKeyForItem(grabbableObject.itemProperties);
-
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(GrabbableObject)}.SyncValuesClientRpc was called for {grabbableReference.NetworkObjectId}! ItemTag: {itemTag}");
-
-
-        if (AdditionalNetworking.PluginConfig.Value.IgnoreScanNodesList.Contains(itemTag))
+        try
         {
-            grabbableObject.scrapValue = scrapValue;
-            grabbableObject.AdditionalNetworking_isInitialized = true;
-        }
-        else
-            grabbableObject.SetScrapValue(scrapValue);
+            data.ReadNetworkSerializable(out NetworkObjectReference grabbableReference);
+            data.ReadValue(out int scrapValue);
+            data.ReadValue(out int dataValue);
 
-        grabbableObject.AdditionalNetworking_hasRequestedSync = false;
+            if (!grabbableReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
+                return;
+
+            var grabbableObject = ((GameObject)grabbableReference).GetComponent<global::GrabbableObject>();
+
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(GrabbableObject)}.SyncValuesClientRpc was called for {grabbableReference.NetworkObjectId}! scrap: {scrapValue}, data: {dataValue}");
+
+            if (grabbableObject.itemProperties.saveItemVariable) grabbableObject.LoadItemSaveData(dataValue);
+
+            var itemTag = ItemCategory.GetKeyForItem(grabbableObject.itemProperties);
+
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(GrabbableObject)}.SyncValuesClientRpc was called for {grabbableReference.NetworkObjectId}! ItemTag: {itemTag}");
+
+
+            if (AdditionalNetworking.PluginConfig.Value.IgnoreScanNodesList.Contains(itemTag))
+            {
+                grabbableObject.scrapValue = scrapValue;
+                grabbableObject.AdditionalNetworking_isInitialized = true;
+            }
+            else
+                grabbableObject.SetScrapValue(scrapValue);
+
+            grabbableObject.AdditionalNetworking_hasRequestedSync = false;
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 
 
@@ -83,18 +97,25 @@ public static class GrabbableObject
         if (!NetworkManager.Singleton.IsServer)
             return;
 
-        data.ReadNetworkSerializable(out NetworkObjectReference grabbableReference);
+        try
+        {
+            data.ReadNetworkSerializable(out NetworkObjectReference grabbableReference);
 
-        if (!grabbableReference.TryGet(out _))
-            return;
+            if (!grabbableReference.TryGet(out _))
+                return;
 
-        AdditionalNetworking.VerboseLog(LogLevel.Debug,
-            () =>
-                $"{nameof(GrabbableObject)}.RequestValuesServerRpc was called for {grabbableReference.NetworkObjectId} by {senderId}!");
+            AdditionalNetworking.VerboseLog(LogLevel.Debug,
+                () =>
+                    $"{nameof(GrabbableObject)}.RequestValuesServerRpc was called for {grabbableReference.NetworkObjectId} by {senderId}!");
 
-        var grabbableObject = ((GameObject)grabbableReference).GetComponent<global::GrabbableObject>();
+            var grabbableObject = ((GameObject)grabbableReference).GetComponent<global::GrabbableObject>();
 
-        SyncValuesClientRpc(grabbableReference, grabbableObject.scrapValue,
-            grabbableObject.itemProperties.saveItemVariable ? grabbableObject.GetItemDataToSave() : 0, [senderId]);
+            SyncValuesClientRpc(grabbableReference, grabbableObject.scrapValue,
+                grabbableObject.itemProperties.saveItemVariable ? grabbableObject.GetItemDataToSave() : 0, [senderId]);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogError($"Exception during networking: {ex}");
+        }
     }
 }

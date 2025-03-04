@@ -15,8 +15,27 @@ internal static class AnimatedItemPatch
         if (!AdditionalNetworking.PluginConfig.ItemState.Animated.Value)
             return;
 
-        if (!__instance.IsServer)
+        if (__instance.IsServer)
+            return;
+
+        if (!__instance.NetworkObject.IsSpawned)
+        {
+            var itemTag = ItemCategory.GetKeyForItem(__instance.itemProperties);
+            AdditionalNetworking.Log.LogFatal(
+                $"{itemTag}({__instance.GetInstanceID()}) is not spawned! nobody else in the network knows about it!");
+            return;
+        }
+
+        try
+        {
             AnimatedObject.RequestSyncServerRpc(__instance.NetworkObject);
+        }
+        catch (Exception ex)
+        {
+            var itemTag = ItemCategory.GetKeyForItem(__instance.itemProperties);
+            AdditionalNetworking.Log.LogError(
+                $"Exception during networking of {itemTag}({__instance.NetworkObjectId}): {ex}");
+        }
     }
 
 
@@ -71,7 +90,7 @@ internal static class AnimatedItemPatch
         {
             var itemTag = ItemCategory.GetKeyForItem(__instance.itemProperties);
             AdditionalNetworking.Log.LogFatal(
-                $"Exception syncing boombox state of {itemTag}({__instance.NetworkObjectId}):\n{ex}");
+                $"Exception syncing animator state of {itemTag}({__instance.NetworkObjectId}):\n{ex}");
         }
     }
 }

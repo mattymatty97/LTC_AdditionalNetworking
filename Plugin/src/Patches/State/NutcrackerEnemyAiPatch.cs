@@ -47,8 +47,8 @@ internal class NutcrackerEnemyAiPatch
         catch (Exception ex)
         {
             var itemTag = ItemCategory.GetKeyForItem(__instance.gun.itemProperties);
-            AdditionalNetworking.Log.LogFatal(
-                $"Exception syncing ammo of {itemTag}({__instance.gun.NetworkObjectId}):\n{ex}");
+            AdditionalNetworking.Log.LogError(
+                $"Exception during networking of {itemTag}({__instance.NetworkObjectId}): {ex}");
         }
     }
 }

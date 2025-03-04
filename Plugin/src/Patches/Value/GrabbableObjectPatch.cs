@@ -45,8 +45,8 @@ internal class GrabbableObjectPatch
         catch (Exception ex)
         {
             var itemTag = ItemCategory.GetKeyForItem(__instance.itemProperties);
-            AdditionalNetworking.Log.LogFatal(
-                $"Exception syncing value of {itemTag}({__instance.NetworkObjectId}):\n{ex}");
+            AdditionalNetworking.Log.LogError(
+                $"Exception during networking of {itemTag}({__instance.NetworkObjectId}): {ex}");
         }
     }
 
