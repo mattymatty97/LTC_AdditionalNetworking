@@ -209,23 +209,5 @@ internal class PlayerControllerBPatch
                 }
             }
         }
-
-        if (__instance.AdditionalNetworking_lastCrouchState != __instance.isCrouching)
-        {
-            __instance.AdditionalNetworking_lastCrouchState = __instance.isCrouching;
-
-            if (AdditionalNetworking.PluginConfig.PlayerState.Crouching.Value && __instance.IsOwner)
-            {
-                try
-                {
-                    PlayerController.SyncCrouchServerRpc(__instance.NetworkObject, __instance.isCrouching);
-                }
-                catch (Exception ex)
-                {
-                    AdditionalNetworking.Log.LogFatal(
-                        $"Exception during networking of {__instance.playerUsername}({__instance.NetworkObjectId}):\n{ex}");
-                }
-            }
-        }
     }
 }

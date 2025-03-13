@@ -1,3 +1,6 @@
+### v2.2.2
+- actually upload the updated mod
+
 ### v2.2.1
 - sync `isCrouching` state to Host so Host AIs can make use of it
 
