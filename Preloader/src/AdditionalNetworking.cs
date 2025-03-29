@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using AdditionalNetworking.Preloader;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -11,7 +12,7 @@ namespace AdditionalNetworking_Preloader
 {
     internal class AdditionalNetworking
     {
-        internal static ManualLogSource Log { get; } = Logger.CreateLogSource(nameof(AdditionalNetworking));
+        internal static ManualLogSource Log { get; } = Logger.CreateLogSource(MyPluginInfo.PLUGIN_NAME);
 
         public static IEnumerable<string> TargetDLLs { get; } = new string[] { "Assembly-CSharp.dll" };
 

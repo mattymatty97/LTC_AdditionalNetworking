@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <PropertyGroup>
+        <!-- Common Versioning and Module Information -->
+        <Version>2.3.0</Version>
+        <ModName>AdditionalNetworking</ModName>
+        <ModGUID>mattymatty.AdditionalNetworking</ModGUID>
+        <ModNameSpace>$(ModName)</ModNameSpace>
+        <AssemblyVersion>$(Version)</AssemblyVersion>
+        <FileVersion>$(Version)</FileVersion>
+        <InformationalVersion>$(Version)</InformationalVersion>
+        <Authors>mattymatty</Authors>
+
+        <AssemblyDescription>Use more Explicit networking for stuff like selected slot and inventory.</AssemblyDescription>
+
+        <!-- Assembly Metadata -->
+        <AssemblyConfiguration>Release</AssemblyConfiguration>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <LangVersion>13.0</LangVersion>
+        <Platforms>AnyCPU</Platforms>
+
+        <!-- License Information -->
+        <PackageLicenseExpression>GPL-3.0</PackageLicenseExpression>
+    </PropertyGroup>
+
+    <!-- Embedded Debug -->
+    <PropertyGroup>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>embedded</DebugType>
+        <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
+    </PropertyGroup>
+
+    <!-- Suppress some Warnings -->
+    <PropertyGroup>
+        <NoWarn>1701;1702;CS0436</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="BepInEx.PluginInfoProps" Version="*"/>
+    </ItemGroup>
+    <PropertyGroup>
+        <BepInExPluginGuid>$(ModGUID)</BepInExPluginGuid>
+        <BepInExPluginName>$(ModName)</BepInExPluginName>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+        <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+</Project>

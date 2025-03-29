@@ -1,5 +1,6 @@
 ﻿using System;
 using AdditionalNetworking.Networking;
+using AdditionalNetworking.Preloader;
 using AdditionalNetworking.Utils;
 using HarmonyLib;
 
@@ -38,7 +39,7 @@ internal class BoomboxItemPatch
         if (!__instance.IsOwner)
             return;
 
-        __instance.AdditionalNetworking_dirtyStatus = true;
+        __instance.SetDirtyStatus(true);
     }
 
 
@@ -51,10 +52,10 @@ internal class BoomboxItemPatch
             return;
 
 
-        if (!boomboxItem.AdditionalNetworking_dirtyStatus)
+        if (!boomboxItem.GetDirtyStatus())
             return;
 
-        boomboxItem.AdditionalNetworking_dirtyStatus = false;
+        boomboxItem.SetDirtyStatus(false);
 
         if (!__instance.NetworkObject.IsSpawned)
         {

@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using AdditionalNetworking.Preloader;
+using HarmonyLib;
 using Unity.Netcode;
 
 namespace AdditionalNetworking.Patches;
@@ -16,7 +17,7 @@ internal class RoundManagerPatch
         if (__instance.__rpc_exec_stage != NetworkBehaviour.__RpcExecStage.Client ||
             (!networkManager.IsClient && !networkManager.IsHost))
             return;
-        __instance.AdditionalNetworking_spawnedScrapPendingSync = true;
+        __instance.SetSpawnedScrapPendingSync(true);
     }
 
     [HarmonyFinalizer]
@@ -29,6 +30,6 @@ internal class RoundManagerPatch
         if (__instance.__rpc_exec_stage != NetworkBehaviour.__RpcExecStage.Client ||
             (!networkManager.IsClient && !networkManager.IsHost))
             return;
-        __instance.AdditionalNetworking_spawnedScrapPendingSync = false;
+        __instance.SetSpawnedScrapPendingSync(false);
     }
 }

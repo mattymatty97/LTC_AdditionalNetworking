@@ -1,53 +1,49 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <RootNamespace>AdditionalNetworking</RootNamespace>
-        <AssemblyName>AdditionalNetworking</AssemblyName>
-        <Product>Additional Networking</Product>
-        <Version>2.2.2</Version>
-        <PackageLicenseExpression>GPL-3.0</PackageLicenseExpression>
-        <TargetFramework>netstandard2.1</TargetFramework>
-        <LangVersion>Latest</LangVersion>
-        <Configurations>Release</Configurations>
-        <Platforms>AnyCPU</Platforms>
+        <RootNamespace>$(ModNameSpace)</RootNamespace>
+        <AssemblyName>$(ModName)</AssemblyName>
+        <AssemblyTitle>$(ModName) - Plugin</AssemblyTitle>
+        <Product>$(ModName)</Product>
     </PropertyGroup>
+
     <ItemGroup>
-        <PackageReference Include="TeamBMX.LobbyCompatibility" Version="1.0.1"/>
-        <PackageReference Include="BepInEx.Core" Version="5.4.21"/>
-    </ItemGroup>
-    <!-- Defining the reference files that have to be publicized. -->
-    <ItemGroup>
-        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all"/>
-
-        <!-- Publicize directly when referencing -->
-        <!--<Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Assembly-CSharp.dll" Publicize="true"/>-->
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Assembly-CSharp-firstpass.dll" Publicize="true"/>
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Facepunch.Steamworks.Win64.dll" Publicize="true"/>
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Unity.Netcode.Runtime.dll" Publicize="true"/>
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Unity.Netcode.Components.dll" Publicize="true"/>
-        <Reference Include="$(SolutionDir)\Dependencies\Assembly-CSharp.pdll" Publicize="true"/>
-
-        <!-- clean referencing -->
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\Unity.TextMeshPro.dll" Publicize="false"/>
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\UnityEngine.dll" Publicize="false"/>
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\UnityEngine.CoreModule.dll" Publicize="false"/>
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\UnityEngine.PhysicsModule.dll" Publicize="false"/>
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\UnityEngine.AudioModule.dll" Publicize="false"/>
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\UnityEngine.AnimationModule.dll" Publicize="false"/>
-        <Reference Include="$(GameDirectory)\Lethal Company_Data\Managed\UnityEngine.UI.dll" Publicize="false"/>
-
+        <PackageReference Include="TeamBMX.LobbyCompatibility" Version="1.0.1" Private="False"/>
         <PackageReference Include="Evaisa-LethalLib" Version="0.16.1" Private="False"/>
         <PackageReference Include="IAmBatby-LethalLevelLoader" Version="1.3.10" Private="False"/>
         <PackageReference Include="AinaVT-LethalConfig" Version="1.4.3" Private="False"/>
+
+        <PackageReference Include="BepInEx.Core" Version="5.4.21" Private="False"/>
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all"/>
+
+        <PackageReference
+                Include="LethalCompany.GameLibs.Steam"
+                Version="69.0.1-ngd.0"
+                Private="False"
+                Publicize="True"
+        />
     </ItemGroup>
-    <Import Project="PostBuildEvents.targets"/>
-    <!-- Embedded Debug -->
-    <PropertyGroup>
-        <DebugSymbols>true</DebugSymbols>
-        <DebugType>embedded</DebugType>
-        <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-        <NoWarn>1701;1702;CS0436</NoWarn>
-    </PropertyGroup>
+
+    <!--Publishing steps-->
+    <Target Name="CopyForUpload" AfterTargets="Build">
+        <PropertyGroup>
+            <DistributionDir>$(SolutionDir)\Output\dist</DistributionDir>
+        </PropertyGroup>
+
+        <PropertyGroup>
+            <PluginOutDir>$(SolutionDir)\Plugin\$(OutDir)</PluginOutDir>
+            <PluginsDistributionDir>$(DistributionDir)\BepInEx\plugins</PluginsDistributionDir>
+        </PropertyGroup>
+
+        <Message Importance="High" Text="Copyng Plugin to DistributionDir"/>
+
+        <MakeDir Directories="$(PluginsDistributionDir)"/>
+        <ItemGroup>
+            <PluginOutputFiles Include="$(PluginOutDir)\**" Exclude="$(PluginOutDir)\**\*.deps.json"/>
+        </ItemGroup>
+        <Copy
+                SourceFiles="@(PluginOutputFiles)"
+                DestinationFolder="$(PluginsDistributionDir)"
+        />
+    </Target>
 </Project>

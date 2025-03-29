@@ -16,9 +16,9 @@ namespace AdditionalNetworking;
 [BepInDependency("BMX.LobbyCompatibility", BepInDependency.DependencyFlags.SoftDependency)]
 internal class AdditionalNetworking : BaseUnityPlugin
 {
-    public const string GUID = "mattymatty.AdditionalNetworking";
-    public const string NAME = "AdditionalNetworking";
-    public const string VERSION = "2.2.2";
+    public const string GUID = MyPluginInfo.PLUGIN_GUID;
+    public const string NAME = MyPluginInfo.PLUGIN_NAME;
+    public const string VERSION = MyPluginInfo.PLUGIN_VERSION;
 
     internal static ManualLogSource Log;
     internal static readonly List<Hook> Hooks = [];

@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <Target Name="CleanForUpload" BeforeTargets="Build">
+        <PropertyGroup>
+            <DistributionDir>$(SolutionDir)\Output\dist</DistributionDir>
+        </PropertyGroup>
+
+        <Message Importance="High" Text="Emptying DistributionDir" />
+        <RemoveDir Directories="$(DistributionDir)" />
+        <MakeDir Directories="$(DistributionDir)" />
+    </Target>
+
+    <Target Name="Upload" AfterTargets="Build">
+        <PropertyGroup>
+            <DistributionDir>$(SolutionDir)\Output\dist</DistributionDir>
+            <DistributionArchive>$(SolutionDir)\Output\package.zip</DistributionArchive>
+        </PropertyGroup>
+
+        <Message Importance="High" Text="Completing Publish Files" />
+        <ItemGroup>
+            <PackageFiles Include="$(SolutionDir)\README.md" />
+            <PackageFiles Include="$(SolutionDir)\CHANGELOG.md" />
+            <PackageFiles Include="$(SolutionDir)\LICENSE" />
+            <PackageFiles Include="$(SolutionDir)\manifest.json" />
+            <PackageFiles Include="$(SolutionDir)\icon.png" />
+        </ItemGroup>
+        <Copy
+                DestinationFolder="$(DistributionDir)"
+                SourceFiles="@(PackageFiles)"
+        />
+
+        <Delete Files="$(DistributionArchive)"/>
+        <ZipDirectory DestinationFile="$(DistributionArchive)" SourceDirectory="$(DistributionDir)"/>
+        <RemoveDir Directories="$(DistributionDir)"/>
+    </Target>
+</Project>

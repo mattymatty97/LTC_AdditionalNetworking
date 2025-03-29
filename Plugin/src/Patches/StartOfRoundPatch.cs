@@ -1,5 +1,6 @@
 ﻿using System;
 using AdditionalNetworking.Dependency;
+using AdditionalNetworking.Preloader;
 using AdditionalNetworking.Utils;
 using HarmonyLib;
 using MonoMod.RuntimeDetour;
@@ -13,7 +14,7 @@ internal class StartOfRoundPatch
     [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.SyncShipUnlockablesClientRpc))]
     private static void AfterUnlockablesSync(StartOfRound __instance)
     {
-        __instance.AdditionalNetworking_unlockablesSynced = true;
+        __instance.SetUnlockablesSynced(true);
     }
 
 

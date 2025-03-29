@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <PropertyGroup>
-        <ProfileDirectory>G:\Modded\Gale\lethal-company\profiles\Debug</ProfileDirectory>
-    </PropertyGroup>
-    <PropertyGroup>
-        <GameDirectory>G:\Steam\steamapps\common\Lethal Company</GameDirectory>
-    </PropertyGroup>
-</Project>

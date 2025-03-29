@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using AdditionalNetworking.Networking;
+using AdditionalNetworking.Preloader;
 using AdditionalNetworking.Utils;
 using GameNetcodeStuff;
 using HarmonyLib;
@@ -50,7 +51,7 @@ internal class PlayerControllerBPatch
         if (!__instance.IsOwner)
             return;
 
-        __instance.AdditionalNetworking_dirtySlots = true;
+        __instance.SetDirtySlots(true);
     }
 
 
@@ -78,7 +79,7 @@ internal class PlayerControllerBPatch
         if (!grabValidated)
             return;
 
-        __instance.AdditionalNetworking_dirtyInventory = true;
+        __instance.SetDirtyInventory(true);
     }
 
     /// <summary>
@@ -95,7 +96,7 @@ internal class PlayerControllerBPatch
         if (!__instance.IsOwner)
             return;
 
-        __instance.AdditionalNetworking_dirtyInventory = true;
+        __instance.SetDirtyInventory(true);
     }
 
     /// <summary>
@@ -112,7 +113,7 @@ internal class PlayerControllerBPatch
         if (!__instance.IsOwner)
             return;
 
-        __instance.AdditionalNetworking_dirtyInventory = true;
+        __instance.SetDirtyInventory(true);
     }
 
     /// <summary>
@@ -148,9 +149,9 @@ internal class PlayerControllerBPatch
     [HarmonyPatch(typeof(PlayerControllerB), nameof(PlayerControllerB.LateUpdate))]
     private static void OnLateUpdate(PlayerControllerB __instance)
     {
-        if (__instance.AdditionalNetworking_dirtySlots)
+        if (__instance.GetDirtySlots())
         {
-            __instance.AdditionalNetworking_dirtySlots = false;
+            __instance.SetDirtySlots(false);
 
             if (__instance.IsOwner)
             {
@@ -166,9 +167,9 @@ internal class PlayerControllerBPatch
             }
         }
 
-        if (__instance.AdditionalNetworking_dirtyInventory)
+        if (__instance.GetDirtyInventory())
         {
-            __instance.AdditionalNetworking_dirtyInventory = false;
+            __instance.SetDirtySlots(false);
 
             if (__instance.IsOwner)
             {

@@ -1,4 +1,5 @@
 ﻿using System;
+using AdditionalNetworking.Preloader;
 using AdditionalNetworking.Utils;
 using Unity.Collections;
 using Unity.Netcode;
@@ -70,12 +71,12 @@ public static class GrabbableObject
             if (AdditionalNetworking.PluginConfig.Value.IgnoreScanNodesList.Contains(itemTag))
             {
                 grabbableObject.scrapValue = scrapValue;
-                grabbableObject.AdditionalNetworking_isInitialized = true;
+                grabbableObject.SetIsInitialized(true);
             }
             else
                 grabbableObject.SetScrapValue(scrapValue);
 
-            grabbableObject.AdditionalNetworking_hasRequestedSync = false;
+            grabbableObject.SetHasRequestedSync(false);
         }
         catch (Exception ex)
         {
