@@ -13,11 +13,12 @@ Currently patched:
 - GrabbedObject slot ( streaming the entire inventory snapshot instead of relying on the other clients to guess where the objects are )
 - Shotgun ammo ( Owner will broadcast the explicit ammo amount )
 - Shotgun safety ( Owner will broadcast the explicit safety status instead of toggle )
-- Shotgun status ( Clients will request shotgun status from Host upon spawn )
+- Shotgun status ( Clients will request shotgun status from Host upon spawn and upon grab )
 - Boombox playing ( Owner will broadcast the explicit track id and playing status )
 - Boombox status ( Clients will request Boombox status from Host upon spawn )
 - Player Username ( Owner will sync the name of his playerObject )
 - Sync scrap value if value is missing ( Client will request values from server )
+  - optional: replace vanilla RPC with a more robust one
 - Sync noise status for AnimatedItems ( Owner will sync the status of the AudioSource )
 - Sync crouching status of clients ( [fixes Old Birds/Giants](https://discord.com/channels/750645598293590077/1328436869612048535) )
 

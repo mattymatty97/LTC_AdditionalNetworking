@@ -1,3 +1,9 @@
+### v2.3.0
+- improve security of the namedMessages
+- sync shotgun values on grab
+- add replacement rpc for syncing grabbable values
+- add option to suppress vanilla grabbable sync
+
 ### v2.2.2
 - actually upload the updated mod
 
