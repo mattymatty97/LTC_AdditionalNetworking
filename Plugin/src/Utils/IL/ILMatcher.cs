@@ -1,8 +1,8 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using HarmonyLib;
 
 namespace AdditionalNetworking.Utils.IL;
@@ -17,16 +17,18 @@ internal interface ILMatcher
         return new InstructionCapturingMatcher(this, variable);
     }
 
-    public ILMatcher CaptureLabelOperandAs(out Label label)
+    public unsafe ILMatcher CaptureOperandAs<T>(out T operand) where T : unmanaged
     {
-        label = default;
-        unsafe
+        operand = default;
+        fixed (T* operandPtr = &operand)
         {
-            fixed (Label* labelPtr = &label)
-            {
-                return new LabelCapturingMatcher(this, labelPtr);
-            }
+            return new OperandCapturingMatcher<T>(this, operandPtr);
         }
+    }
+
+    public ILMatcher Debug()
+    {
+        return new DebuggingMatcher(this);
     }
 
     public static ILMatcher Not(ILMatcher matcher) => new NotMatcher(matcher);
@@ -40,48 +42,95 @@ internal interface ILMatcher
     public static ILMatcher Ldloc(int? loc = null) => new LdlocMatcher(loc);
     public static ILMatcher Stloc(int? loc = null) => new StlocMatcher(loc);
     public static ILMatcher Ldc(int? value = null) => new LdcI32Matcher(value);
+    public static ILMatcher LdcF32(float? value = null) => new LdcF32Matcher(value);
+
+    public unsafe static ILMatcher LdlocCapture(out int localIndex)
+    {
+        localIndex = -1;
+        fixed (int* localIndexPtr = &localIndex)
+        {
+            return new LdlocCapturingMatcher(localIndexPtr);
+        }
+    }
+
+    public unsafe static ILMatcher Ldloc(in int localIndex)
+    {
+        fixed (int* localIndexPtr = &localIndex)
+        {
+            return new LdlocByRefMatcher(localIndexPtr);
+        }
+    }
+
+    public unsafe static ILMatcher StlocCapture(out int localIndex)
+    {
+        localIndex = -1;
+        fixed (int* localIndexPtr = &localIndex)
+        {
+            return new StlocCapturingMatcher(localIndexPtr);
+        }
+    }
+
+    public unsafe static ILMatcher Stloc(in int localIndex)
+    {
+        fixed (int* localIndexPtr = &localIndex)
+        {
+            return new StlocByRefMatcher(localIndexPtr);
+        }
+    }
 
     public static ILMatcher Branch() => new BranchMatcher();
 
-    public static ILMatcher Ldfld(FieldInfo field)
+    public static ILMatcher Ldfld(FieldInfo field, [CallerMemberName] string callerName = "",
+        [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         if (field == null)
-            AdditionalNetworking.Log.LogWarning($"Field passed to ILMatcher.Ldfld() was null\n{new StackTrace()}");
+            AdditionalNetworking.Log.LogWarning(
+                $"Field passed to ILMatcher.Ldfld() was null at {sourceFilePath}#{sourceLineNumber} ({callerName})");
         return new OpcodeOperandMatcher(OpCodes.Ldfld, field);
     }
 
-    public static ILMatcher Ldsfld(FieldInfo field)
+    public static ILMatcher Ldsfld(FieldInfo field, [CallerMemberName] string callerName = "",
+        [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         if (field == null)
-            AdditionalNetworking.Log.LogWarning($"Field passed to ILMatcher.Ldsfld() was null\n{new StackTrace()}");
+            AdditionalNetworking.Log.LogWarning(
+                $"Field passed to ILMatcher.Ldsfld() was null at {sourceFilePath}#{sourceLineNumber} ({callerName})");
         return new OpcodeOperandMatcher(OpCodes.Ldsfld, field);
     }
 
-    public static ILMatcher Stfld(FieldInfo field)
+    public static ILMatcher Stfld(FieldInfo field, [CallerMemberName] string callerName = "",
+        [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         if (field == null)
-            AdditionalNetworking.Log.LogWarning($"Field passed to ILMatcher.Stfld() was null\n{new StackTrace()}");
+            AdditionalNetworking.Log.LogWarning(
+                $"Field passed to ILMatcher.Stfld() was null at {sourceFilePath}#{sourceLineNumber} ({callerName})");
         return new OpcodeOperandMatcher(OpCodes.Stfld, field);
     }
 
-    public static ILMatcher Stsfld(FieldInfo field)
+    public static ILMatcher Stsfld(FieldInfo field, [CallerMemberName] string callerName = "",
+        [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         if (field == null)
-            AdditionalNetworking.Log.LogWarning($"Field passed to ILMatcher.Stsfld() was null\n{new StackTrace()}");
+            AdditionalNetworking.Log.LogWarning(
+                $"Field passed to ILMatcher.Stsfld() was null at {sourceFilePath}#{sourceLineNumber} ({callerName})");
         return new OpcodeOperandMatcher(OpCodes.Stsfld, field);
     }
 
-    public static ILMatcher Callvirt(MethodBase method)
+    public static ILMatcher Callvirt(MethodBase method, [CallerMemberName] string callerName = "",
+        [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         if (method == null)
-            AdditionalNetworking.Log.LogWarning($"Method passed to ILMatcher.Callvirt() was null\n{new StackTrace()}");
+            AdditionalNetworking.Log.LogWarning(
+                $"Method passed to ILMatcher.Callvirt() was null at {sourceFilePath}#{sourceLineNumber} ({callerName})");
         return OpcodeOperand(OpCodes.Callvirt, method);
     }
 
-    public static ILMatcher Call(MethodBase method)
+    public static ILMatcher Call(MethodBase method, [CallerMemberName] string callerName = "",
+        [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         if (method == null)
-            AdditionalNetworking.Log.LogWarning($"Method passed to ILMatcher.Call() was null\n{new StackTrace()}");
+            AdditionalNetworking.Log.LogWarning(
+                $"Method passed to ILMatcher.Call() was null at {sourceFilePath}#{sourceLineNumber} ({callerName})");
         return OpcodeOperand(OpCodes.Call, method);
     }
 
@@ -180,7 +229,15 @@ internal class LdcI32Matcher(int? value) : ILMatcher
     private readonly int? value = value;
 
     public bool Matches(CodeInstruction instruction) =>
-        (!value.HasValue && instruction.GetLdcI32().HasValue) || instruction.GetLdcI32() == value;
+        value.HasValue ? instruction.GetLdcI32() == value : instruction.GetLdcI32().HasValue;
+}
+
+internal class LdcF32Matcher(float? value) : ILMatcher
+{
+    private readonly float? value = value;
+
+    public bool Matches(CodeInstruction instruction) => instruction.opcode == OpCodes.Ldc_R4 &&
+                                                        (!value.HasValue || (float)instruction.operand == value.Value);
 }
 
 internal class BranchMatcher : ILMatcher
@@ -215,16 +272,77 @@ internal class InstructionCapturingMatcher(ILMatcher matcher, CodeInstruction va
     }
 }
 
-internal unsafe class LabelCapturingMatcher(ILMatcher matcher, Label* label) : ILMatcher
+internal unsafe class OperandCapturingMatcher<T>(ILMatcher matcher, T* operand) : ILMatcher where T : unmanaged
 {
     private readonly ILMatcher matcher = matcher;
-    private readonly Label* label = label;
+    private readonly T* operand = operand;
 
     public bool Matches(CodeInstruction instruction)
     {
         var isMatch = matcher.Matches(instruction);
         if (isMatch)
-            *label = (Label)instruction.operand;
+            *operand = (T)instruction.operand;
+        return isMatch;
+    }
+}
+
+internal unsafe class LdlocCapturingMatcher(int* localIndex) : ILMatcher
+{
+    private readonly int* localIndex = localIndex;
+
+    public bool Matches(CodeInstruction instruction)
+    {
+        var matchedIndex = instruction.GetLdlocIndex();
+        if (matchedIndex.HasValue)
+        {
+            *localIndex = matchedIndex.Value;
+            return true;
+        }
+
+        return false;
+    }
+}
+
+internal unsafe class LdlocByRefMatcher(int* localIndexPtr) : ILMatcher
+{
+    private readonly int* localIndexPtr = localIndexPtr;
+
+    public bool Matches(CodeInstruction instruction) => instruction.GetLdlocIndex() == *localIndexPtr;
+}
+
+internal unsafe class StlocCapturingMatcher(int* localIndex) : ILMatcher
+{
+    private readonly int* localIndex = localIndex;
+
+    public bool Matches(CodeInstruction instruction)
+    {
+        var matchedIndex = instruction.GetStlocIndex();
+        if (matchedIndex.HasValue)
+        {
+            *localIndex = matchedIndex.Value;
+            return true;
+        }
+
+        return false;
+    }
+}
+
+internal unsafe class StlocByRefMatcher(int* localIndexPtr) : ILMatcher
+{
+    private readonly int* localIndexPtr = localIndexPtr;
+
+    public bool Matches(CodeInstruction instruction) => instruction.GetStlocIndex() == *localIndexPtr;
+}
+
+internal class DebuggingMatcher(ILMatcher matcher) : ILMatcher
+{
+    private readonly ILMatcher matcher = matcher;
+
+    public bool Matches(CodeInstruction instruction)
+    {
+        var isMatch = matcher.Matches(instruction);
+        if (isMatch)
+            AdditionalNetworking.Log.LogInfo($"{matcher} matched {instruction}");
         return isMatch;
     }
 }

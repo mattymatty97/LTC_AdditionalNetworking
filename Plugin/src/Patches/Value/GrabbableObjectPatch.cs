@@ -24,7 +24,7 @@ internal class GrabbableObjectPatch
         if (__instance.GetHasRequestedSync())
             return;
 
-        if (StartOfRound.Instance.inShipPhase && !StartOfRound.Instance.GetUnlockablesSynced())
+        if (StartOfRound.Instance.inShipPhase && !StartOfRound.Instance.GetValuablesSynced())
             return;
 
         if (RoundManager.Instance.GetSpawnedScrapPendingSync())

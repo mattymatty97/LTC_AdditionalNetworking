@@ -96,7 +96,7 @@ namespace AdditionalNetworking_Preloader
                         case "StartOfRound":
                             type.AddField(
                                 FieldAttributes.Private,
-                                "AdditionalNetworking_unlockablesSynced",
+                                "AdditionalNetworking_valuablesSynced",
                                 type.Module.ImportReference(typeof(bool)),
                                 logHandler);
                             break;

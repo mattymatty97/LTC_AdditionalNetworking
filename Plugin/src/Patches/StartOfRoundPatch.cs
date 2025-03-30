@@ -1,9 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using AdditionalNetworking.Dependency;
 using AdditionalNetworking.Preloader;
 using AdditionalNetworking.Utils;
+using AdditionalNetworking.Utils.IL;
 using HarmonyLib;
 using MonoMod.RuntimeDetour;
+using Unity.Netcode;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace AdditionalNetworking.Patches;
 
@@ -12,11 +20,133 @@ internal class StartOfRoundPatch
 {
     [HarmonyFinalizer]
     [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.SyncShipUnlockablesClientRpc))]
-    private static void AfterUnlockablesSync(StartOfRound __instance)
+    private static void AfterUnlockablesClientSync(StartOfRound __instance)
     {
-        __instance.SetUnlockablesSynced(true);
+        var networkManager = __instance.NetworkManager;
+        if (networkManager == null || !networkManager.IsListening)
+            return;
+        if (__instance.__rpc_exec_stage != NetworkBehaviour.__RpcExecStage.Client ||
+            (!networkManager.IsClient && !networkManager.IsHost))
+            return;
+
+        if (!AdditionalNetworking.PluginConfig.Value.ShouldSkipGrabbableSync)
+            __instance.SetValuablesSynced(true);
     }
 
+    private static void SyncGrabbableReplacement()
+    {
+        var targets = NetworkManager.Singleton.ConnectedClientsIds.Where(id => id != NetworkManager.ServerClientId)
+            .ToArray();
+
+        var grabbables = Object.FindObjectsOfType<GrabbableObject>();
+        var holders = grabbables.Where(g => g.IsSpawned).Select(g => new GrabbableDataHolder(g));
+        try
+        {
+            AdditionalNetworking.Log.LogInfo($"Syncing {grabbables.Length} items!");
+            foreach (var holderChunk in holders.Chunk(500))
+            {
+                Networking.GrabbableObject.SyncMultipleValuesClientRpc(holderChunk.ToArray(), targets);
+            }
+
+            Networking.GrabbableObject.MarkValuablesSyncedClientRpc(targets);
+        }
+        catch (Exception ex)
+        {
+            AdditionalNetworking.Log.LogFatal($"Exception syncing all grabbables\n{ex}");
+        }
+    }
+
+    [HarmonyTranspiler]
+    [HarmonyBefore("LethalPerformance")]
+    [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.SyncShipUnlockablesServerRpc))]
+    private static IEnumerable<CodeInstruction> PatchSyncShipUnlockablesServerRpc(
+        IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator, MethodBase method)
+    {
+        var codes = instructions.ToArray();
+
+        var injector = new ILInjector(codes, ilGenerator);
+
+        // + if (!AdditionalNetworking.PluginConfig.Value.ShouldSkipGrabbableSync)
+        // + {
+        // =     GrabbableObject[] array3 = (from x in UnityEngine.Object.FindObjectsByType<GrabbableObject>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+        // =         orderby Vector3.Distance(x.transform.position, Vector3.zero)
+        // =         select x).ToArray();
+        // + }
+        // + else
+        // + {
+        // +     GrabbableObject[] array3 = [];
+        // + }
+
+        injector.Find([
+            ILMatcher.Ldc(),
+            ILMatcher.Ldc(),
+            ILMatcher.Call(typeof(Object).GetGenericMethod(nameof(Object.FindObjectsByType),
+                [typeof(FindObjectsInactive), typeof(FindObjectsSortMode)], [typeof(GrabbableObject)])),
+        ]);
+
+
+        if (!injector.IsValid)
+        {
+            AdditionalNetworking.Log.LogError(
+                $"Failed to find FindObjectsByType in {method.DeclaringType!.FullName}.{method.Name}");
+            return codes;
+        }
+
+        injector.DefineLabel(out var continueLabel)
+            .DefineLabel(out var emptyLabel)
+            .InsertAfterBranch([
+                new CodeInstruction(OpCodes.Call,
+                    typeof(AdditionalNetworking.PluginConfig.Value)
+                        .GetProperty(nameof(AdditionalNetworking.PluginConfig.Value.ShouldSkipGrabbableSync),
+                            BindingFlags.Static | BindingFlags.NonPublic)!.GetMethod),
+                new CodeInstruction(OpCodes.Brtrue, emptyLabel),
+            ]);
+
+        injector.Find([
+            ILMatcher.Call(typeof(Enumerable).GetGenericMethod(nameof(Enumerable.ToArray),
+                [typeof(IEnumerable<GrabbableObject>)],
+                [typeof(GrabbableObject)])),
+            ILMatcher.Stloc().CaptureAs(out var storeInstruction)
+        ]);
+
+        if (!injector.IsValid)
+        {
+            AdditionalNetworking.Log.LogError(
+                $"Failed to find ToArray in {method.DeclaringType!.FullName}.{method.Name}");
+            return codes;
+        }
+
+        injector.GoToMatchEnd()
+            .AddLabel(continueLabel)
+            .Insert([
+                new CodeInstruction(OpCodes.Br, continueLabel),
+                new CodeInstruction(OpCodes.Call, typeof(Array)
+                    .GetGenericMethod(nameof(Array.Empty), [], [typeof(GrabbableObject)])) { labels = [emptyLabel] },
+                storeInstruction
+            ]);
+
+        // = SyncShipUnlockablesClientRpc([...]);
+        // + SyncGrabbableReplacement();
+
+        injector.Find([
+            ILMatcher.Call(typeof(StartOfRound).GetMethod(nameof(StartOfRound.SyncShipUnlockablesClientRpc))),
+        ]);
+
+        if (!injector.IsValid)
+        {
+            AdditionalNetworking.Log.LogError(
+                $"Failed to find call to SyncShipUnlockablesClientRpc in {method.DeclaringType!.FullName}.{method.Name}");
+            return codes;
+        }
+
+        injector.GoToMatchEnd()
+            .Insert([
+                new CodeInstruction(OpCodes.Call, typeof(StartOfRoundPatch)
+                    .GetMethod(nameof(SyncGrabbableReplacement), BindingFlags.Static | BindingFlags.NonPublic)),
+            ]);
+
+        return injector.ReleaseInstructions();
+    }
 
     internal static void Init()
     {

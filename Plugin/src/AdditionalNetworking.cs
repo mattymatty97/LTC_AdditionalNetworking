@@ -95,6 +95,8 @@ internal class AdditionalNetworking : BaseUnityPlugin
 
             //Item value
             Value.Enabled = config.Bind("Item Values", "Enabled", true, "sync value of scrap if missing");
+            Value.SkipVanillaGrabbablesSync = config.Bind("Item Values", "SkipVanillaGrabbablesSync", false,
+                "disable sync item values in SyncShipUnlockablesServerRpc, replaced by AdditionalNetworking own message");
             Value.IgnoreScanNodes = config.Bind("Item Values", "Ignored Scan Nodes", "Vanilla/Apparatus,",
                 "list of items that have custom scan node texts\nListSeparator=,");
 
@@ -124,13 +126,19 @@ internal class AdditionalNetworking : BaseUnityPlugin
             {
                 LethalConfigProxy.AddConfig(Inventory.InventoryChange);
                 LethalConfigProxy.AddConfig(Inventory.SlotChange);
+
                 LethalConfigProxy.AddConfig(ItemState.Animated);
                 LethalConfigProxy.AddConfig(ItemState.Boombox);
                 LethalConfigProxy.AddConfig(ItemState.Shotgun);
+
+                LethalConfigProxy.AddConfig(PlayerState.Crouching);
+
                 LethalConfigProxy.AddConfig(Value.Enabled);
+                LethalConfigProxy.AddConfig(Value.SkipVanillaGrabbablesSync);
                 LethalConfigProxy.AddConfig(Value.IgnoreScanNodes);
-                LethalConfigProxy.AddConfig(ItemState.Shotgun);
+
                 LethalConfigProxy.AddConfig(Misc.Username);
+
                 LethalConfigProxy.AddConfig(Debug.Verbose);
             }
 
@@ -167,7 +175,9 @@ internal class AdditionalNetworking : BaseUnityPlugin
         //Item value
         internal static class Value
         {
+            internal static bool ShouldSkipGrabbableSync => SkipVanillaGrabbablesSync!.Value;
             internal static ConfigEntry<bool> Enabled;
+            internal static ConfigEntry<bool> SkipVanillaGrabbablesSync;
             internal static ConfigEntry<string> IgnoreScanNodes;
             internal static HashSet<string> IgnoreScanNodesList = [];
         }

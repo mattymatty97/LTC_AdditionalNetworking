@@ -128,24 +128,24 @@ public static class ExtraFields
         return _setterRoundManagerSpawnedScrapPendingSync(@this, value);
     }
 
-    //StartOfRound.AdditionalNetworking_unlockablesSynced
-    private static readonly FieldInfo StartOfRoundUnlockablesSynced = typeof(StartOfRound)
-        .GetField("AdditionalNetworking_unlockablesSynced", BindingFlags.Instance | BindingFlags.NonPublic);
+    //StartOfRound.AdditionalNetworking_valuablesSynced
+    private static readonly FieldInfo StartOfRoundValuablesSynced = typeof(StartOfRound)
+        .GetField("AdditionalNetworking_valuablesSynced", BindingFlags.Instance | BindingFlags.NonPublic);
 
-    private static Func<StartOfRound, bool> _getterStartOfRoundUnlockablesSynced;
-    private static Func<StartOfRound, bool, bool> _setterStartOfRoundUnlockablesSynced;
+    private static Func<StartOfRound, bool> _getterStartOfRoundValuablesSynced;
+    private static Func<StartOfRound, bool, bool> _setterStartOfRoundValuablesSynced;
 
-    public static bool GetUnlockablesSynced(this StartOfRound @this)
+    public static bool GetValuablesSynced(this StartOfRound @this)
     {
-        _getterStartOfRoundUnlockablesSynced ??= (Func<StartOfRound, bool>)StartOfRoundUnlockablesSynced.FastGetter();
-        return _getterStartOfRoundUnlockablesSynced(@this);
+        _getterStartOfRoundValuablesSynced ??= (Func<StartOfRound, bool>)StartOfRoundValuablesSynced.FastGetter();
+        return _getterStartOfRoundValuablesSynced(@this);
     }
 
-    public static bool SetUnlockablesSynced(this StartOfRound @this, in bool value)
+    public static bool SetValuablesSynced(this StartOfRound @this, in bool value)
     {
-        _setterStartOfRoundUnlockablesSynced ??=
-            (Func<StartOfRound, bool, bool>)StartOfRoundUnlockablesSynced.FastSetter();
-        return _setterStartOfRoundUnlockablesSynced(@this, value);
+        _setterStartOfRoundValuablesSynced ??=
+            (Func<StartOfRound, bool, bool>)StartOfRoundValuablesSynced.FastSetter();
+        return _setterStartOfRoundValuablesSynced(@this, value);
     }
 
     //ShotgunItem.AdditionalNetworking_dirtyAmmo

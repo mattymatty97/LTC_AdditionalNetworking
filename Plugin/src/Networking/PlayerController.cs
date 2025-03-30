@@ -145,13 +145,16 @@ public static class PlayerController
 
     private static void OnSyncInventoryClientRpc(ulong senderId, FastBufferReader data)
     {
+        if (senderId != NetworkManager.ServerClientId)
+            return;
+
         try
         {
             data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
             data.ReadNetworkSerializable(out NetworkObjectReference[] inventory);
             data.ReadValue(out int[] slots);
 
-            if (!controllerReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
+            if (!controllerReference.TryGet(out _))
                 return;
 
             AdditionalNetworking.VerboseLog(LogLevel.Debug,
@@ -205,12 +208,15 @@ public static class PlayerController
 
     private static void OnThrowExtraItemsClientRpc(ulong senderId, FastBufferReader data)
     {
+        if (senderId != NetworkManager.ServerClientId)
+            return;
+
         try
         {
             data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
             data.ReadNetworkSerializable(out NetworkObjectReference[] objectsToThrow);
 
-            if (!controllerReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
+            if (!controllerReference.TryGet(out _))
                 return;
 
             AdditionalNetworking.Log.LogWarning(
@@ -295,12 +301,15 @@ public static class PlayerController
 
     private static void OnSyncSelectedSlotClientRpc(ulong senderId, FastBufferReader data)
     {
+        if (senderId != NetworkManager.ServerClientId)
+            return;
+
         try
         {
             data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
             data.ReadValue(out int selectedSlot);
 
-            if (!controllerReference.TryGet(out _) || NetworkManager.ServerClientId != senderId)
+            if (!controllerReference.TryGet(out _))
                 return;
 
             var controllerB = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
@@ -371,12 +380,15 @@ public static class PlayerController
 
     private static void OnSyncCrouchClientRpc(ulong senderId, FastBufferReader data)
     {
+        if (senderId != NetworkManager.ServerClientId)
+            return;
+
         try
         {
             data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
             data.ReadValue(out bool crouched);
 
-            if (!controllerReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
+            if (!controllerReference.TryGet(out _))
                 return;
 
             var controller = ((GameObject)controllerReference).GetComponent<PlayerControllerB>();
@@ -445,12 +457,15 @@ public static class PlayerController
 
     private static void OnSyncUsernameClientRpc(ulong senderId, FastBufferReader data)
     {
+        if (senderId != NetworkManager.ServerClientId)
+            return;
+
         try
         {
             data.ReadNetworkSerializable(out NetworkObjectReference controllerReference);
             data.ReadValue(out string username);
 
-            if (!controllerReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
+            if (!controllerReference.TryGet(out _))
                 return;
 
             AdditionalNetworking.Log.LogDebug(

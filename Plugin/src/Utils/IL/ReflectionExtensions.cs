@@ -14,7 +14,34 @@ public static class ReflectionExtensions
                 continue;
             if (!method.IsGenericMethodDefinition)
                 continue;
-            return method.MakeGenericMethod(genericArgs);
+
+            MethodInfo specializedMethod;
+            try
+            {
+                specializedMethod = method.MakeGenericMethod(genericArgs);
+            }
+            catch (ArgumentException)
+            {
+                continue;
+            }
+
+            var candidateParameters = specializedMethod.GetParameters();
+            if (parameters.Length != candidateParameters.Length)
+                continue;
+            var parametersEqual = true;
+            for (var i = 0; i < parameters.Length; i++)
+            {
+                if (parameters[i] != candidateParameters[i].ParameterType)
+                {
+                    parametersEqual = false;
+                    break;
+                }
+            }
+
+            if (!parametersEqual)
+                continue;
+
+            return specializedMethod;
         }
 
         return null;

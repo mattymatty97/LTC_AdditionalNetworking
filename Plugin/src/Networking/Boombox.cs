@@ -83,13 +83,16 @@ public static class Boombox
 
     private static void OnSyncStateClientRpc(ulong senderId, FastBufferReader data)
     {
+        if (senderId != NetworkManager.ServerClientId)
+            return;
+
         try
         {
             data.ReadNetworkSerializable(out NetworkObjectReference boomboxReference);
             data.ReadValue(out bool playing);
             data.ReadValue(out int track);
 
-            if (!boomboxReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
+            if (!boomboxReference.TryGet(out _))
                 return;
 
             var boomboxItem = ((GameObject)boomboxReference).GetComponent<BoomboxItem>();

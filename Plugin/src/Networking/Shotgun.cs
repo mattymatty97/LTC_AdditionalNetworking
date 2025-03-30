@@ -88,12 +88,15 @@ public static class Shotgun
 
     private static void OnSyncAmmoClientRpc(ulong senderId, FastBufferReader data)
     {
+        if (senderId != NetworkManager.ServerClientId)
+            return;
+
         try
         {
             data.ReadNetworkSerializable(out NetworkObjectReference shotgunReference);
             data.ReadValue(out int ammoCount);
 
-            if (!shotgunReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
+            if (!shotgunReference.TryGet(out _))
                 return;
 
             var shotgunItem = ((GameObject)shotgunReference).GetComponent<ShotgunItem>();
@@ -121,6 +124,13 @@ public static class Shotgun
                     shotgunItem.shotgunShellRight.enabled = true;
                     break;
             }
+
+            var localController = GameNetworkManager.Instance.localPlayerController;
+            if (!localController || localController.currentlyHeldObjectServer != shotgunItem)
+                return;
+
+            HUDManager.Instance.ClearControlTips();
+            shotgunItem.SetControlTipsForItem();
         }
         catch (Exception ex)
         {
@@ -178,12 +188,15 @@ public static class Shotgun
 
     private static void OnSyncSafetyClientRpc(ulong senderId, FastBufferReader data)
     {
+        if (senderId != NetworkManager.ServerClientId)
+            return;
+
         try
         {
             data.ReadNetworkSerializable(out NetworkObjectReference shotgunReference);
             data.ReadValue(out bool safety);
 
-            if (!shotgunReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
+            if (!shotgunReference.TryGet(out _))
                 return;
 
             var shotgunItem = ((GameObject)shotgunReference).GetComponent<ShotgunItem>();
@@ -196,6 +209,13 @@ public static class Shotgun
                 return;
 
             shotgunItem.safetyOn = safety;
+
+            var localController = GameNetworkManager.Instance.localPlayerController;
+            if (!localController || localController.currentlyHeldObjectServer != shotgunItem)
+                return;
+
+            HUDManager.Instance.ClearControlTips();
+            shotgunItem.SetControlTipsForItem();
         }
         catch (Exception ex)
         {

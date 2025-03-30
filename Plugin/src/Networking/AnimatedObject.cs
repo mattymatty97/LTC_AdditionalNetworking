@@ -75,12 +75,14 @@ public static class AnimatedObject
 
     private static void OnSyncAudioStateClientRpc(ulong senderId, FastBufferReader data)
     {
+        if (senderId != NetworkManager.ServerClientId)
+            return;
         try
         {
             data.ReadNetworkSerializable(out NetworkObjectReference itemReference);
             data.ReadValue(out bool playing);
 
-            if (!itemReference.TryGet(out _) || senderId != NetworkManager.ServerClientId)
+            if (!itemReference.TryGet(out _))
                 return;
 
             var animatedItem = ((GameObject)itemReference).GetComponent<AnimatedItem>();
