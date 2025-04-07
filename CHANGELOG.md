@@ -1,3 +1,6 @@
+### v2.3.1
+- fix conversion error that makes inventory re-sync each frame
+
 ### v2.3.0
 - improve security of the namedMessages
 - sync shotgun values on grab
