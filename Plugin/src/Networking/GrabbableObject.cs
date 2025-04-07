@@ -87,7 +87,11 @@ public static class GrabbableObject
     private static void SyncSingleItem(in global::GrabbableObject grabbableObject, in string itemTag, in int scrapValue,
         in int dataValue)
     {
-        if (grabbableObject.itemProperties.saveItemVariable) grabbableObject.LoadItemSaveData(dataValue);
+        if (grabbableObject.itemProperties.saveItemVariable)
+            grabbableObject.LoadItemSaveData(dataValue);
+
+        if (grabbableObject is GiftBoxItem giftBoxItem)
+            giftBoxItem.loadedItemFromSave = false;
 
         if (!grabbableObject.itemProperties.isScrap)
             return;

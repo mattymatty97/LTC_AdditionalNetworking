@@ -183,7 +183,8 @@ public static class PlayerController
                 }
             }
 
-            controllerB.SwitchToItemSlot(controllerB.currentItemSlot);
+            if (controllerB.currentlyHeldObjectServer != controllerB.ItemSlots[controllerB.currentItemSlot])
+                controllerB.SwitchToItemSlot(controllerB.currentItemSlot);
         }
         catch (Exception ex)
         {

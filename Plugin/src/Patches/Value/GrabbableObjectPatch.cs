@@ -15,6 +15,10 @@ internal class GrabbableObjectPatch
         if (!AdditionalNetworking.PluginConfig.Value.Enabled.Value)
             return;
 
+        //host does not need to sync!
+        if (__instance.IsServer)
+            return;
+
         if (!__instance.itemProperties.isScrap)
             return;
 

@@ -16,7 +16,8 @@ internal class BoomboxItemPatch
         if (!AdditionalNetworking.PluginConfig.ItemState.Boombox.Value)
             return;
 
-        if (StartOfRound.Instance.IsServer)
+        //host does not need to sync!
+        if (__instance.IsServer)
             return;
 
         try

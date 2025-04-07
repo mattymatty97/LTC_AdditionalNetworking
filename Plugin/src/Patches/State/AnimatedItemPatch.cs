@@ -16,6 +16,7 @@ internal static class AnimatedItemPatch
         if (!AdditionalNetworking.PluginConfig.ItemState.Animated.Value)
             return;
 
+        //host does not need to sync!
         if (__instance.IsServer)
             return;
 

@@ -12,7 +12,13 @@ namespace AdditionalNetworking_Preloader
 {
     internal class AdditionalNetworking
     {
-        internal static ManualLogSource Log { get; } = Logger.CreateLogSource(MyPluginInfo.PLUGIN_NAME);
+        public const string GUID = MyPluginInfo.PLUGIN_GUID;
+        public const string NAME = MyPluginInfo.PLUGIN_NAME;
+        public const string VERSION = MyPluginInfo.PLUGIN_VERSION;
+
+        internal static readonly BepInPlugin Plugin = new BepInPlugin(GUID, NAME, VERSION);
+
+        internal static ManualLogSource Log { get; } = Logger.CreateLogSource(NAME);
 
         public static IEnumerable<string> TargetDLLs { get; } = new string[] { "Assembly-CSharp.dll" };
 
@@ -144,7 +150,7 @@ namespace AdditionalNetworking_Preloader
         {
             public static void Init()
             {
-                var config = new ConfigFile(Utility.CombinePaths(MainDir, "Development.cfg"), true);
+                var config = new ConfigFile(Utility.CombinePaths(MainDir, $"{NAME}.Development.cfg"), true);
                 //Initialize Configs
                 Enabled = config.Bind("DevelOptions", "Enabled", false, "Enable development dll output");
                 OutputPath = config.Bind("DevelOptions", "OutputPath", MainDir,

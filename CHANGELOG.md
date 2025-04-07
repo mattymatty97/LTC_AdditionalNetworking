@@ -1,3 +1,14 @@
+### v2.3.3
+
+- prevent host asking itself for values
+
+### v2.3.2
+
+- do not pocket and restore held items if they are already the correct item
+
+### v2.3.1
+- fix conversion error that makes inventory re-sync each frame
+
 ### v2.3.0
 - improve security of the namedMessages
 - sync shotgun values on grab
