@@ -169,7 +169,7 @@ internal class PlayerControllerBPatch
 
         if (__instance.GetDirtyInventory())
         {
-            __instance.SetDirtySlots(false);
+            __instance.SetDirtyInventory(false);
 
             if (__instance.IsOwner)
             {
