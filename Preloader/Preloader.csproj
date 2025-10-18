@@ -3,7 +3,7 @@
     <PropertyGroup>
         <RootNamespace>$(ModNameSpace).Preloader</RootNamespace>
         <AssemblyName>$(ModName).Preloader</AssemblyName>
-        <AssemblyTitle>$(ModName) - Preloader</AssemblyTitle>
+        <AssemblyTitle>Preloader For $(ModName)</AssemblyTitle>
         <Product>$(ModName)</Product>
     </PropertyGroup>
 

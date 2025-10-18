@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using AdditionalNetworking.Interfaces;
 using AdditionalNetworking.Networking;
-using AdditionalNetworking.Preloader;
 using AdditionalNetworking.Utils;
 using GameNetcodeStuff;
 using HarmonyLib;
@@ -51,7 +51,7 @@ internal class PlayerControllerBPatch
         if (!__instance.IsOwner)
             return;
 
-        __instance.SetDirtySlots(true);
+        ((INetworkPlayerControllerB)__instance).AdditionalNetworking_SlotChanged = true;
     }
 
 
@@ -63,11 +63,7 @@ internal class PlayerControllerBPatch
         nameof(PlayerControllerB.GrabObjectClientRpc))]
     private static void OnItemGrabbed(PlayerControllerB __instance, bool grabValidated)
     {
-        var networkManager = __instance.NetworkManager;
-        if (networkManager == null || !networkManager.IsListening)
-            return;
-        if (__instance.__rpc_exec_stage != NetworkBehaviour.__RpcExecStage.Client ||
-            (!networkManager.IsClient && !networkManager.IsHost))
+        if (!__instance.IsRPCClientStage())
             return;
 
         if (!AdditionalNetworking.PluginConfig.Inventory.InventoryChange.Value)
@@ -79,7 +75,7 @@ internal class PlayerControllerBPatch
         if (!grabValidated)
             return;
 
-        __instance.SetDirtyInventory(true);
+        ((INetworkPlayerControllerB)__instance).AdditionalNetworking_InventoryChanged = true;
     }
 
     /// <summary>
@@ -96,7 +92,7 @@ internal class PlayerControllerBPatch
         if (!__instance.IsOwner)
             return;
 
-        __instance.SetDirtyInventory(true);
+        ((INetworkPlayerControllerB)__instance).AdditionalNetworking_InventoryChanged = true;
     }
 
     /// <summary>
@@ -113,7 +109,7 @@ internal class PlayerControllerBPatch
         if (!__instance.IsOwner)
             return;
 
-        __instance.SetDirtyInventory(true);
+        ((INetworkPlayerControllerB)__instance).AdditionalNetworking_InventoryChanged = true;
     }
 
     /// <summary>
@@ -149,9 +145,9 @@ internal class PlayerControllerBPatch
     [HarmonyPatch(typeof(PlayerControllerB), nameof(PlayerControllerB.LateUpdate))]
     private static void OnLateUpdate(PlayerControllerB __instance)
     {
-        if (__instance.GetDirtySlots())
+        if (((INetworkPlayerControllerB)__instance).AdditionalNetworking_SlotChanged)
         {
-            __instance.SetDirtySlots(false);
+            ((INetworkPlayerControllerB)__instance).AdditionalNetworking_SlotChanged = false;
 
             if (__instance.IsOwner)
             {
@@ -167,9 +163,9 @@ internal class PlayerControllerBPatch
             }
         }
 
-        if (__instance.GetDirtyInventory())
+        if (((INetworkPlayerControllerB)__instance).AdditionalNetworking_InventoryChanged)
         {
-            __instance.SetDirtyInventory(false);
+            ((INetworkPlayerControllerB)__instance).AdditionalNetworking_InventoryChanged = false;
 
             if (__instance.IsOwner)
             {

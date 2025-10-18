@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using AdditionalNetworking.Dependency;
-using AdditionalNetworking.Preloader;
+using AdditionalNetworking.Interfaces;
 using AdditionalNetworking.Utils;
 using AdditionalNetworking.Utils.IL;
 using HarmonyLib;
@@ -22,15 +22,11 @@ internal class StartOfRoundPatch
     [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.SyncShipUnlockablesClientRpc))]
     private static void AfterUnlockablesClientSync(StartOfRound __instance)
     {
-        var networkManager = __instance.NetworkManager;
-        if (networkManager == null || !networkManager.IsListening)
-            return;
-        if (__instance.__rpc_exec_stage != NetworkBehaviour.__RpcExecStage.Client ||
-            (!networkManager.IsClient && !networkManager.IsHost))
+        if (!__instance.IsRPCClientStage())
             return;
 
         if (!AdditionalNetworking.PluginConfig.Value.ShouldSkipGrabbableSync)
-            __instance.SetValuablesSynced(true);
+            ((INetworkStartOfRound)__instance).AdditionalNetworking_ValuablesSynced = true;
     }
 
     private static void SyncGrabbableReplacement()

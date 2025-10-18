@@ -1,9 +1,9 @@
 ﻿using System;
+using AdditionalNetworking.Interfaces;
 using AdditionalNetworking.Networking;
-using AdditionalNetworking.Preloader;
+using AdditionalNetworking.Utils;
 using GameNetcodeStuff;
 using HarmonyLib;
-using Unity.Netcode;
 
 namespace AdditionalNetworking.Patches.State;
 
@@ -17,10 +17,10 @@ internal class PlayerControllerBPatch
     [HarmonyPatch(typeof(PlayerControllerB), nameof(PlayerControllerB.LateUpdate))]
     private static void OnLateUpdate(PlayerControllerB __instance)
     {
-        if (__instance.GetLastCrouchState() == __instance.isCrouching)
+        if (((INetworkPlayerControllerB)__instance).AdditionalNetworking_LastCrouchState == __instance.isCrouching)
             return;
 
-        __instance.SetLastCrouchState(__instance.isCrouching);
+        ((INetworkPlayerControllerB)__instance).AdditionalNetworking_LastCrouchState = __instance.isCrouching;
 
         if (AdditionalNetworking.PluginConfig.PlayerState.Crouching.Value && __instance.IsOwner)
         {
@@ -40,13 +40,7 @@ internal class PlayerControllerBPatch
     [HarmonyPatch(typeof(PlayerControllerB), nameof(PlayerControllerB.GrabObjectServerRpc))]
     private static void OnGrabRequest(PlayerControllerB __instance)
     {
-        var networkManager = __instance.NetworkManager;
-        if ((object)networkManager == null || !networkManager.IsListening)
-            return;
-
-        if (__instance.__rpc_exec_stage == NetworkBehaviour.__RpcExecStage.Server ||
-            (!networkManager.IsClient && !networkManager.IsHost) ||
-            __instance.OwnerClientId == networkManager.LocalClientId)
+        if (!__instance.IsRPCServerStage())
             return;
 
         var targetObject = __instance.currentlyGrabbingObject;

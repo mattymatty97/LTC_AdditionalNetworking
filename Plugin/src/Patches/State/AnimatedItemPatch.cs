@@ -1,6 +1,6 @@
 ﻿using System;
+using AdditionalNetworking.Interfaces;
 using AdditionalNetworking.Networking;
-using AdditionalNetworking.Preloader;
 using AdditionalNetworking.Utils;
 using HarmonyLib;
 
@@ -51,7 +51,8 @@ internal static class AnimatedItemPatch
         if (!__instance.IsOwner)
             return;
 
-        __instance.SetDirtyStatus(true);
+
+        ((INetworkAnimatedItem)__instance).AdditionalNetworking_Changed = true;
     }
 
 
@@ -66,10 +67,10 @@ internal static class AnimatedItemPatch
         if (animatedItem == null)
             return;
 
-        if (!animatedItem.GetDirtyStatus())
+        if (((INetworkAnimatedItem)__instance).AdditionalNetworking_Changed)
             return;
 
-        animatedItem.SetDirtyStatus(false);
+        ((INetworkAnimatedItem)__instance).AdditionalNetworking_Changed = false;
 
         if (!__instance.NetworkObject.IsSpawned)
         {

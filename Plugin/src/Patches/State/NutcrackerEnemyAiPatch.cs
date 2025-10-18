@@ -2,7 +2,6 @@
 using AdditionalNetworking.Networking;
 using AdditionalNetworking.Utils;
 using HarmonyLib;
-using Unity.Netcode;
 
 namespace AdditionalNetworking.Patches.State;
 
@@ -13,12 +12,9 @@ internal class NutcrackerEnemyAiPatch
     [HarmonyPatch(typeof(NutcrackerEnemyAI), nameof(NutcrackerEnemyAI.ReloadGunClientRpc))]
     private static void OnReload(NutcrackerEnemyAI __instance)
     {
-        var networkManager = __instance.NetworkManager;
-        if (networkManager == null || !networkManager.IsListening)
+        if (!__instance.IsRPCClientStage())
             return;
-        if (__instance.__rpc_exec_stage != NetworkBehaviour.__RpcExecStage.Client ||
-            (!networkManager.IsClient && !networkManager.IsHost))
-            return;
+
         if (!__instance.IsOwner)
             return;
 

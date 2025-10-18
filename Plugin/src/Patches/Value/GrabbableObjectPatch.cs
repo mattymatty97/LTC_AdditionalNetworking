@@ -1,5 +1,5 @@
 ﻿using System;
-using AdditionalNetworking.Preloader;
+using AdditionalNetworking.Interfaces;
 using AdditionalNetworking.Utils;
 using HarmonyLib;
 
@@ -22,16 +22,18 @@ internal class GrabbableObjectPatch
         if (!__instance.itemProperties.isScrap)
             return;
 
-        if (__instance.GetIsInitialized())
+
+        if (((INetworkGrabbableObject)__instance).AdditionalNetworking_IsInitialized)
             return;
 
-        if (__instance.GetHasRequestedSync())
+        if (((INetworkGrabbableObject)__instance).AdditionalNetworking_RequestedSync)
             return;
 
-        if (StartOfRound.Instance.inShipPhase && !StartOfRound.Instance.GetValuablesSynced())
+        if (StartOfRound.Instance.inShipPhase &&
+            !((INetworkStartOfRound)StartOfRound.Instance).AdditionalNetworking_ValuablesSynced)
             return;
 
-        if (RoundManager.Instance.GetSpawnedScrapPendingSync())
+        if (((INetworkRoundManager)RoundManager.Instance).AdditionalNetworking_ScrapPendingSync)
             return;
 
         if (!__instance.NetworkObject.IsSpawned)
@@ -45,7 +47,7 @@ internal class GrabbableObjectPatch
         try
         {
             Networking.GrabbableObject.RequestSyncServerRpc(__instance.NetworkObject);
-            __instance.SetHasRequestedSync(true);
+            ((INetworkGrabbableObject)__instance).AdditionalNetworking_RequestedSync = true;
         }
         catch (Exception ex)
         {
@@ -60,6 +62,6 @@ internal class GrabbableObjectPatch
     [HarmonyPatch(typeof(GrabbableObject), nameof(GrabbableObject.LoadItemSaveData))]
     private static void OnInitialize(GrabbableObject __instance)
     {
-        __instance.SetIsInitialized(true);
+        ((INetworkGrabbableObject)__instance).AdditionalNetworking_IsInitialized = true;
     }
 }

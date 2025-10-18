@@ -1,9 +1,11 @@
-### v2.3.3
+### v2.3.4
 
+- update to v73 and use Interfaces to add properties more cleanly
+
+### v2.3.3
 - prevent host asking itself for values
 
 ### v2.3.2
-
 - do not pocket and restore held items if they are already the correct item
 
 ### v2.3.1

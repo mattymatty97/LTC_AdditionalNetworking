@@ -1,6 +1,6 @@
-﻿using AdditionalNetworking.Preloader;
+﻿using AdditionalNetworking.Interfaces;
+using AdditionalNetworking.Utils;
 using HarmonyLib;
-using Unity.Netcode;
 
 namespace AdditionalNetworking.Patches;
 
@@ -11,25 +11,20 @@ internal class RoundManagerPatch
     [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.GenerateNewLevelClientRpc))]
     private static void OnNewLevel(RoundManager __instance)
     {
-        var networkManager = __instance.NetworkManager;
-        if (networkManager == null || !networkManager.IsListening)
+        if (!__instance.IsRPCClientStage())
             return;
-        if (__instance.__rpc_exec_stage != NetworkBehaviour.__RpcExecStage.Client ||
-            (!networkManager.IsClient && !networkManager.IsHost))
-            return;
-        __instance.SetSpawnedScrapPendingSync(true);
+
+
+        ((INetworkRoundManager)__instance).AdditionalNetworking_ScrapPendingSync = true;
     }
 
     [HarmonyFinalizer]
     [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.SyncScrapValuesClientRpc))]
     private static void AfterScrapValueSync(RoundManager __instance)
     {
-        var networkManager = __instance.NetworkManager;
-        if (networkManager == null || !networkManager.IsListening)
+        if (__instance.IsRPCClientStage())
             return;
-        if (__instance.__rpc_exec_stage != NetworkBehaviour.__RpcExecStage.Client ||
-            (!networkManager.IsClient && !networkManager.IsHost))
-            return;
-        __instance.SetSpawnedScrapPendingSync(false);
+
+        ((INetworkRoundManager)__instance).AdditionalNetworking_ScrapPendingSync = false;
     }
 }

@@ -1,176 +1,148 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
-using AdditionalNetworking.Preloader;
+using AdditionalNetworking.Preloader.Utils;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using Mono.Cecil;
-using FieldAttributes = Mono.Cecil.FieldAttributes;
 
-namespace AdditionalNetworking_Preloader
+namespace AdditionalNetworking.Preloader;
+
+internal class AdditionalNetworking
 {
-    internal class AdditionalNetworking
+    public const string GUID = MyPluginInfo.PLUGIN_GUID;
+    public const string NAME = MyPluginInfo.PLUGIN_NAME;
+    public const string VERSION = MyPluginInfo.PLUGIN_VERSION;
+
+    internal static readonly BepInPlugin Plugin = new BepInPlugin(GUID, NAME, VERSION);
+
+    internal static ManualLogSource Log { get; } = Logger.CreateLogSource(NAME);
+
+    public static IEnumerable<string> TargetDLLs { get; } = ["Assembly-CSharp.dll"];
+
+    private static readonly string MainDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+    private static readonly Dictionary<string, Dictionary<string, List<TypeDefinition>>> Interfaces = [];
+
+    public static void Patch(AssemblyDefinition assembly)
     {
-        public const string GUID = MyPluginInfo.PLUGIN_GUID;
-        public const string NAME = MyPluginInfo.PLUGIN_NAME;
-        public const string VERSION = MyPluginInfo.PLUGIN_VERSION;
-
-        internal static readonly BepInPlugin Plugin = new BepInPlugin(GUID, NAME, VERSION);
-
-        internal static ManualLogSource Log { get; } = Logger.CreateLogSource(NAME);
-
-        public static IEnumerable<string> TargetDLLs { get; } = new string[] { "Assembly-CSharp.dll" };
-
-        private static readonly string MainDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
-        public static void Patch(AssemblyDefinition assembly)
+        var logHandler = (bool fail, string message) =>
         {
-            var logHandler = (bool fail, string message) =>
-            {
-                if (fail)
-                    Log.LogWarning(message);
-                Log.LogInfo(message);
-            };
+            if (fail)
+                Log.LogWarning(message);
+            else
+                Log.LogDebug(message);
+        };
 
+        if (Interfaces.TryGetValue(assembly.Name.Name, out var dict))
+        {
             Log.LogWarning($"Patching {assembly.Name.Name}");
-            if (assembly.Name.Name == "Assembly-CSharp")
+            foreach (var type in assembly.MainModule.Types)
             {
-                foreach (var type in assembly.MainModule.Types)
+                if (!dict.TryGetValue(type.Name, out var list))
+                    continue;
+
+                foreach (var @interface in list)
                 {
-                    switch (type.FullName)
-                    {
-                        case "GrabbableObject":
-                            type.AddField(
-                                FieldAttributes.Private,
-                                "AdditionalNetworking_isInitialized",
-                                type.Module.ImportReference(typeof(bool)),
-                                logHandler);
-
-                            type.AddField(
-                                FieldAttributes.Private,
-                                "AdditionalNetworking_hasRequestedSync",
-                                type.Module.ImportReference(typeof(bool)),
-                                logHandler);
-                            break;
-                        case "GameNetcodeStuff.PlayerControllerB":
-                            type.AddField(
-                                FieldAttributes.Private,
-                                "AdditionalNetworking_dirtyInventory",
-                                type.Module.ImportReference(typeof(bool)),
-                                logHandler);
-
-                            type.AddField(
-                                FieldAttributes.Private,
-                                "AdditionalNetworking_dirtySlots",
-                                type.Module.ImportReference(typeof(bool)),
-                                logHandler);
-
-                            type.AddField(
-                                FieldAttributes.Private,
-                                "AdditionalNetworking_lastCrouchState",
-                                type.Module.ImportReference(typeof(bool)),
-                                logHandler);
-                            break;
-                        case "ShotgunItem":
-                            type.AddField(
-                                FieldAttributes.Private,
-                                "AdditionalNetworking_dirtyAmmo",
-                                type.Module.ImportReference(typeof(bool)),
-                                logHandler);
-
-                            type.AddField(
-                                FieldAttributes.Private,
-                                "AdditionalNetworking_dirtySafety",
-                                type.Module.ImportReference(typeof(bool)),
-                                logHandler);
-                            break;
-                        case "BoomboxItem":
-                            type.AddField(
-                                FieldAttributes.Private,
-                                "AdditionalNetworking_dirtyStatus",
-                                type.Module.ImportReference(typeof(bool)),
-                                logHandler);
-                            break;
-                        case "AnimatedItem":
-                            type.AddField(
-                                FieldAttributes.Private,
-                                "AdditionalNetworking_dirtyStatus",
-                                type.Module.ImportReference(typeof(bool)),
-                                logHandler);
-                            break;
-                        case "StartOfRound":
-                            type.AddField(
-                                FieldAttributes.Private,
-                                "AdditionalNetworking_valuablesSynced",
-                                type.Module.ImportReference(typeof(bool)),
-                                logHandler);
-                            break;
-                        case "RoundManager":
-                            type.AddField(
-                                FieldAttributes.Private,
-                                "AdditionalNetworking_spawnedScrapPendingSync",
-                                type.Module.ImportReference(typeof(bool)),
-                                logHandler);
-                            break;
-                        case "MenuManager":
-                            type.AddField(
-                                FieldAttributes.Private,
-                                "AdditionalNetworking_preloaded",
-                                type.Module.ImportReference(typeof(bool)),
-                                logHandler);
-                            break;
-                    }
+                    if (!type.ImplementInterface(@interface, logHandler))
+                        break;
                 }
             }
-
-            if (!PluginConfig.Enabled.Value)
-                return;
-
-            var outputAssembly =
-                $"{PluginConfig.OutputPath.Value}/{assembly.Name.Name}{PluginConfig.OutputExtension.Value}";
-            Log.LogWarning($"Saving modified Assembly to {outputAssembly}");
-            assembly.Write(outputAssembly);
         }
 
-        // Cannot be renamed, method name is important
-        public static void Initialize()
+        if (!PluginConfig.Enabled.Value)
+            return;
+
+        var outputAssembly =
+            $"{PluginConfig.OutputPath.Value}/{assembly.Name.Name}{PluginConfig.OutputExtension.Value}";
+        Log.LogWarning($"Saving modified Assembly to {outputAssembly}");
+        assembly.Write(outputAssembly);
+    }
+
+    // Cannot be renamed, method name is important
+    public static void Initialize()
+    {
+        Log.LogInfo($"AdditionalNetworking Prepatcher Started");
+        PluginConfig.Init();
+
+        var pluginPath = Directory.EnumerateDirectories(Paths.PluginPath).FirstOrDefault(d => d.Contains(NAME));
+
+        if (pluginPath == null)
         {
-            Log.LogInfo($"AdditionalNetworking Prepatcher Started");
-            PluginConfig.Init();
+            Log.LogFatal("Could not find Interfaces dll!");
+            return;
         }
 
-        // Cannot be renamed, method name is important
-        public static void Finish()
+        var dllPath = Path.Combine(pluginPath, $"{NAME}.Interfaces.dll");
+
+        if (!File.Exists(dllPath))
         {
-            Log.LogInfo($"AdditionalNetworking Prepatcher Finished");
+            Log.LogFatal("Could not find Interfaces dll!");
+            return;
         }
 
-        public static class PluginConfig
+        var interfaceAssembly = AssemblyDefinition.ReadAssembly(dllPath);
+
+        var attributeName = typeof(InjectInterfaceAttribute).FullName;
+
+        foreach (var type in interfaceAssembly.MainModule.Types)
         {
-            public static void Init()
+            if (!type.IsInterface)
+                continue;
+
+            var attributes = type.CustomAttributes.Where(at => at.AttributeType.FullName == attributeName);
+
+            foreach (var customAttribute in attributes)
             {
-                var config = new ConfigFile(Utility.CombinePaths(MainDir, $"{NAME}.Development.cfg"), true);
-                //Initialize Configs
-                Enabled = config.Bind("DevelOptions", "Enabled", false, "Enable development dll output");
-                OutputPath = config.Bind("DevelOptions", "OutputPath", MainDir,
-                    "Folder where to write the modified dlls");
-                OutputExtension = config.Bind("DevelOptions", "OutputExtension", ".pdll",
-                    "Extension to use for the modified dlls\n( Do not use .dll if outputting inside the BepInEx folders )");
+                var attr = customAttribute.GetAttributeInstance<InjectInterfaceAttribute>();
 
-                //remove unused options
-                PropertyInfo orphanedEntriesProp = config.GetType()
-                    .GetProperty("OrphanedEntries", BindingFlags.NonPublic | BindingFlags.Instance);
+                if (!Interfaces.TryGetValue(attr.AssemblyName, out var dict))
+                {
+                    Interfaces[attr.AssemblyName] = dict = [];
+                }
 
-                var orphanedEntries = (Dictionary<ConfigDefinition, string>)orphanedEntriesProp!.GetValue(config, null);
+                if (!dict.TryGetValue(attr.TypeName, out var list))
+                {
+                    dict[attr.TypeName] = list = [];
+                }
 
-                orphanedEntries.Clear(); // Clear orphaned entries (Unbinded/Abandoned entries)
-                config.Save(); // Save the config file
+                list.Add(type);
             }
-
-            internal static ConfigEntry<bool> Enabled;
-            internal static ConfigEntry<string> OutputPath;
-            internal static ConfigEntry<string> OutputExtension;
         }
+    }
+
+    // Cannot be renamed, method name is important
+    public static void Finish()
+    {
+        Log.LogInfo($"AdditionalNetworking Prepatcher Finished");
+    }
+
+    public static class PluginConfig
+    {
+        public static void Init()
+        {
+            var config = new ConfigFile(Utility.CombinePaths(MainDir, $"{NAME}.Development.cfg"), true);
+            //Initialize Configs
+            Enabled = config.Bind("DevelOptions", "Enabled", false, "Enable development dll output");
+            OutputPath = config.Bind("DevelOptions", "OutputPath", MainDir,
+                "Folder where to write the modified dlls");
+            OutputExtension = config.Bind("DevelOptions", "OutputExtension", ".pdll",
+                "Extension to use for the modified dlls\n( Do not use .dll if outputting inside the BepInEx folders )");
+
+            //remove unused options
+            PropertyInfo orphanedEntriesProp = config.GetType()
+                .GetProperty("OrphanedEntries", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            var orphanedEntries = (Dictionary<ConfigDefinition, string>)orphanedEntriesProp!.GetValue(config, null);
+
+            orphanedEntries.Clear(); // Clear orphaned entries (Unbinded/Abandoned entries)
+            config.Save(); // Save the config file
+        }
+
+        internal static ConfigEntry<bool> Enabled;
+        internal static ConfigEntry<string> OutputPath;
+        internal static ConfigEntry<string> OutputExtension;
     }
 }

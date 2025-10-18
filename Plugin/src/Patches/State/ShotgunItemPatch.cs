@@ -1,6 +1,6 @@
 ﻿using System;
+using AdditionalNetworking.Interfaces;
 using AdditionalNetworking.Networking;
-using AdditionalNetworking.Preloader;
 using AdditionalNetworking.Utils;
 using HarmonyLib;
 
@@ -51,7 +51,7 @@ internal class ShotgunItemPatch
         if (start || !__instance.IsOwner)
             return;
 
-        __instance.SetDirtyAmmo(true);
+        ((INetworkShotgunItem)__instance).AdditionalNetworking_AmmoCountChanged = true;
     }
 
 
@@ -65,7 +65,7 @@ internal class ShotgunItemPatch
         if (!__instance.IsOwner)
             return;
 
-        __instance.SetDirtyAmmo(true);
+        ((INetworkShotgunItem)__instance).AdditionalNetworking_AmmoCountChanged = true;
     }
 
 
@@ -79,7 +79,7 @@ internal class ShotgunItemPatch
         if (!__instance.IsOwner)
             return;
 
-        __instance.SetDirtySafety(true);
+        ((INetworkShotgunItem)__instance).AdditionalNetworking_SafetyChanged = true;
     }
 
 
@@ -99,9 +99,9 @@ internal class ShotgunItemPatch
             return;
         }
 
-        if (shotgunItem.GetDirtyAmmo())
+        if (((INetworkShotgunItem)__instance).AdditionalNetworking_AmmoCountChanged)
         {
-            shotgunItem.SetDirtyAmmo(false);
+            ((INetworkShotgunItem)__instance).AdditionalNetworking_AmmoCountChanged = false;
 
             if (__instance.IsOwner)
             {
@@ -118,9 +118,9 @@ internal class ShotgunItemPatch
             }
         }
 
-        if (shotgunItem.GetDirtySafety())
+        if (((INetworkShotgunItem)__instance).AdditionalNetworking_SafetyChanged)
         {
-            shotgunItem.SetDirtySafety(false);
+            ((INetworkShotgunItem)__instance).AdditionalNetworking_SafetyChanged = false;
 
             if (__instance.IsOwner)
             {

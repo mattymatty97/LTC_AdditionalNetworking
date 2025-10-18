@@ -1,6 +1,6 @@
 ﻿using System;
+using AdditionalNetworking.Interfaces;
 using AdditionalNetworking.Networking;
-using AdditionalNetworking.Preloader;
 using AdditionalNetworking.Utils;
 using HarmonyLib;
 
@@ -40,7 +40,7 @@ internal class BoomboxItemPatch
         if (!__instance.IsOwner)
             return;
 
-        __instance.SetDirtyStatus(true);
+        ((INetworkBoomboxItem)__instance).AdditionalNetworking_Changed = true;
     }
 
 
@@ -52,11 +52,10 @@ internal class BoomboxItemPatch
         if (boomboxItem == null)
             return;
 
-
-        if (!boomboxItem.GetDirtyStatus())
+        if (((INetworkBoomboxItem)__instance).AdditionalNetworking_Changed)
             return;
 
-        boomboxItem.SetDirtyStatus(false);
+        ((INetworkBoomboxItem)__instance).AdditionalNetworking_Changed = false;
 
         if (!__instance.NetworkObject.IsSpawned)
         {

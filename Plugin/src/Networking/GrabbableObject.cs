@@ -1,5 +1,5 @@
 ﻿using System;
-using AdditionalNetworking.Preloader;
+using AdditionalNetworking.Interfaces;
 using AdditionalNetworking.Utils;
 using Unity.Collections;
 using Unity.Netcode;
@@ -40,12 +40,12 @@ public static class GrabbableObject
             MarkValuablesSyncedClientRpcMessage);
     }
 
-    private static void SyncValuesClientRpc(in GrabbableDataHolder grabbableItem, ulong[] targets = default)
+    private static void SyncValuesClientRpc(in GrabbableDataHolder grabbableItem, ulong[] targets = null)
     {
         var buffer = new FastBufferWriter(1024, Allocator.Temp);
         buffer.WriteGrabbableDataHolder(grabbableItem);
 
-        if (targets == default)
+        if (targets == null)
             NetworkManager.Singleton.CustomMessagingManager.SendNamedMessageToAll(SyncValuesClientRpcMessage, buffer);
         else
             NetworkManager.Singleton.CustomMessagingManager.SendNamedMessage(SyncValuesClientRpcMessage, targets,
@@ -76,7 +76,7 @@ public static class GrabbableObject
 
             SyncSingleItem(grabbableObject, itemTag, scrapValue, dataValue);
 
-            grabbableObject.SetHasRequestedSync(false);
+            ((INetworkGrabbableObject)grabbableObject).AdditionalNetworking_RequestedSync = false;
         }
         catch (Exception ex)
         {
@@ -99,7 +99,7 @@ public static class GrabbableObject
         if (AdditionalNetworking.PluginConfig.Value.IgnoreScanNodesList.Contains(itemTag))
         {
             grabbableObject.scrapValue = scrapValue;
-            grabbableObject.SetIsInitialized(true);
+            ((INetworkGrabbableObject)grabbableObject).AdditionalNetworking_IsInitialized = true;
         }
         else
             grabbableObject.SetScrapValue(scrapValue);
@@ -222,7 +222,7 @@ public static class GrabbableObject
                 () =>
                     $"{nameof(GrabbableObject)}.MarkValuablesSyncedClientRpc was called!");
 
-            StartOfRound.Instance.SetValuablesSynced(true);
+            ((INetworkStartOfRound)StartOfRound.Instance).AdditionalNetworking_ValuablesSynced = true;
         }
         catch (Exception ex)
         {
