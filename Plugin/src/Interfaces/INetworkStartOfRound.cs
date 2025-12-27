@@ -1,8 +1,10 @@
-﻿using AdditionalNetworking.Preloader.Utils;
+﻿using InjectionLibrary.Attributes;
+
+[assembly: RequiresInjections]
 
 namespace AdditionalNetworking.Interfaces;
 
-[InjectInterface(nameof(StartOfRound))]
+[InjectInterface(typeof(StartOfRound))]
 public interface INetworkStartOfRound
 {
     bool AdditionalNetworking_ValuablesSynced { get; set; }

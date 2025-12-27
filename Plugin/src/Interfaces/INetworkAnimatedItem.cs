@@ -1,8 +1,10 @@
-﻿using AdditionalNetworking.Preloader.Utils;
+﻿using InjectionLibrary.Attributes;
+
+[assembly: RequiresInjections]
 
 namespace AdditionalNetworking.Interfaces;
 
-[InjectInterface(nameof(AnimatedItem))]
+[InjectInterface(typeof(AnimatedItem))]
 public interface INetworkAnimatedItem
 {
     bool AdditionalNetworking_Changed { get; set; }

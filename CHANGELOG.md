@@ -1,5 +1,8 @@
-### v2.3.4
+### v2.3.5
 
+- use MonkeyInjectionLibrary for a more robust way of editing base-game classes
+
+### v2.3.4
 - update to v73 and use Interfaces to add properties more cleanly
 
 ### v2.3.3
@@ -9,7 +12,8 @@
 - do not pocket and restore held items if they are already the correct item
 
 ### v2.3.1
-- fix conversion error that makes inventory re-sync each frame
+
+- fix a conversion error that makes inventory re-sync each frame
 
 ### v2.3.0
 - improve security of the namedMessages

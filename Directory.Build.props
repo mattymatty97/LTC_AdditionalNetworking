@@ -2,7 +2,7 @@
 <Project>
     <PropertyGroup>
         <!-- Common Versioning and Module Information -->
-        <Version>2.3.3</Version>
+        <Version>2.3.5</Version>
         <ModName>AdditionalNetworking</ModName>
         <ModGUID>mattymatty.AdditionalNetworking</ModGUID>
         <ModNameSpace>$(ModName)</ModNameSpace>
@@ -49,4 +49,37 @@
         <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
+    <Target Name="CleanForUpload" BeforeTargets="Build">
+        <PropertyGroup>
+            <DistributionDir>$(SolutionDir)\Output\dist</DistributionDir>
+        </PropertyGroup>
+
+        <Message Importance="High" Text="Emptying DistributionDir"/>
+        <RemoveDir Directories="$(DistributionDir)"/>
+        <MakeDir Directories="$(DistributionDir)"/>
+    </Target>
+
+    <Target Name="Upload" AfterTargets="CopyForUpload">
+        <PropertyGroup>
+            <DistributionDir>$(SolutionDir)\Output\dist</DistributionDir>
+            <DistributionArchive>$(SolutionDir)\Output\$(ModName)-$(Version).zip</DistributionArchive>
+        </PropertyGroup>
+
+        <Message Importance="High" Text="Completing Publish Files"/>
+        <ItemGroup>
+            <PackageFiles Include="$(SolutionDir)\README.md"/>
+            <PackageFiles Include="$(SolutionDir)\CHANGELOG.md"/>
+            <PackageFiles Include="$(SolutionDir)\LICENSE"/>
+            <PackageFiles Include="$(SolutionDir)\manifest.json"/>
+            <PackageFiles Include="$(SolutionDir)\icon.png"/>
+        </ItemGroup>
+        <Copy
+                DestinationFolder="$(DistributionDir)"
+                SourceFiles="@(PackageFiles)"
+        />
+
+        <Delete Files="$(DistributionArchive)"/>
+        <ZipDirectory DestinationFile="$(DistributionArchive)" SourceDirectory="$(DistributionDir)"/>
+        <RemoveDir Directories="$(DistributionDir)"/>
+    </Target>
 </Project>

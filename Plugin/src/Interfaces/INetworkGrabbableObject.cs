@@ -1,8 +1,10 @@
-﻿using AdditionalNetworking.Preloader.Utils;
+﻿using InjectionLibrary.Attributes;
+
+[assembly: RequiresInjections]
 
 namespace AdditionalNetworking.Interfaces;
 
-[InjectInterface(nameof(GrabbableObject))]
+[InjectInterface(typeof(GrabbableObject))]
 public interface INetworkGrabbableObject
 {
     bool AdditionalNetworking_IsInitialized { get; set; }

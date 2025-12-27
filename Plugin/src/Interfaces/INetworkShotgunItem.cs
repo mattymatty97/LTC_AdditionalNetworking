@@ -1,8 +1,10 @@
-﻿using AdditionalNetworking.Preloader.Utils;
+﻿using InjectionLibrary.Attributes;
+
+[assembly: RequiresInjections]
 
 namespace AdditionalNetworking.Interfaces;
 
-[InjectInterface(nameof(ShotgunItem))]
+[InjectInterface(typeof(ShotgunItem))]
 public interface INetworkShotgunItem
 {
     bool AdditionalNetworking_AmmoCountChanged { get; set; }

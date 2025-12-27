@@ -1,9 +1,11 @@
-﻿using AdditionalNetworking.Preloader.Utils;
-using GameNetcodeStuff;
+﻿using GameNetcodeStuff;
+using InjectionLibrary.Attributes;
+
+[assembly: RequiresInjections]
 
 namespace AdditionalNetworking.Interfaces;
 
-[InjectInterface(nameof(PlayerControllerB))]
+[InjectInterface(typeof(PlayerControllerB))]
 public interface INetworkPlayerControllerB
 {
     bool AdditionalNetworking_InventoryChanged { get; set; }
