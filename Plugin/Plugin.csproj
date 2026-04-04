@@ -12,17 +12,24 @@
         <PackageReference Include="Evaisa-LethalLib" Version="0.16.1" Private="False"/>
         <PackageReference Include="IAmBatby-LethalLevelLoader" Version="1.3.10" Private="False"/>
         <PackageReference Include="AinaVT-LethalConfig" Version="1.4.3" Private="False"/>
-        <PackageReference Include="mattymatty-MonkeyInjectionLibrary" Version="1.0.0"/>
+        <PackageReference Include="mattymatty-MonkeyInjectionLibrary" Version="*" Private="False"/>
 
         <PackageReference Include="BepInEx.Core" Version="5.4.21" Private="False"/>
         <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all"/>
 
         <PackageReference
                 Include="LethalCompany.GameLibs.Steam"
-                Version="73.0.0-ngd.0"
+                Version="81.2.0-*"
                 Private="False"
                 Publicize="True"
+                Condition="'$(GameLibsPath)'==''"
         />
+    </ItemGroup>
+
+    <!-- Fallback: reference DLLs directly from the game folder -->
+    <ItemGroup Condition="'$(GameLibsPath)'!=''">
+        <Reference Include="$(GameLibsPath)\Assembly-CSharp.dll" Private="False" Publicize="True"/>
+        <Reference Include="$(GameLibsPath)\Unity*.dll" Private="False" Publicize="True"/>
     </ItemGroup>
 
     <!--Publishing steps-->

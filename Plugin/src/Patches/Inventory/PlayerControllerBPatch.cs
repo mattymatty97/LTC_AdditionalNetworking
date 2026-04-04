@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using AdditionalNetworking.Interfaces;
 using AdditionalNetworking.Networking;
 using AdditionalNetworking.Utils;
@@ -169,11 +168,8 @@ internal class PlayerControllerBPatch
 
             if (__instance.IsOwner)
             {
-                List<NetworkObjectReference> networkObjects;
-                List<int> slots;
-
-                using var pooledObject1 = ListPool<NetworkObjectReference>.Get(out networkObjects);
-                using var pooledObject2 = ListPool<int>.Get(out slots);
+                using var pooledObject1 = ListPool<NetworkObjectReference>.Get(out var networkObjects);
+                using var pooledObject2 = ListPool<int>.Get(out var slots);
 
                 for (var i = 0; i < __instance.ItemSlots.Length; i++)
                 {
@@ -196,8 +192,10 @@ internal class PlayerControllerBPatch
 
                 try
                 {
-                    PlayerController.SyncInventoryServerRpc(__instance.NetworkObject, networkObjects.ToArray(),
-                        slots.ToArray());
+                    PlayerController.SyncInventoryServerRpc(
+                        __instance.NetworkObject,
+                        __instance.ItemOnlySlot ? __instance.ItemOnlySlot.NetworkObject : null,
+                        networkObjects.ToArray(), slots.ToArray());
                 }
                 catch (Exception ex)
                 {

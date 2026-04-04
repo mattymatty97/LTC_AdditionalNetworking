@@ -2,7 +2,7 @@
 <Project>
     <PropertyGroup>
         <!-- Common Versioning and Module Information -->
-        <Version>2.3.5</Version>
+        <Version>2.4.0</Version>
         <ModName>AdditionalNetworking</ModName>
         <ModGUID>mattymatty.AdditionalNetworking</ModGUID>
         <ModNameSpace>$(ModName)</ModNameSpace>

@@ -1,5 +1,8 @@
-### v2.3.5
+### v2.4.0
 
+- Update to V80
+
+### v2.3.5
 - use MonkeyInjectionLibrary for a more robust way of editing base-game classes
 
 ### v2.3.4

@@ -10,5 +10,4 @@ public interface INetworkPlayerControllerB
 {
     bool AdditionalNetworking_InventoryChanged { get; set; }
     bool AdditionalNetworking_SlotChanged { get; set; }
-    bool AdditionalNetworking_LastCrouchState { get; set; }
 }

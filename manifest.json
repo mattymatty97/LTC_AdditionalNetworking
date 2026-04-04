@@ -1,11 +1,11 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "name": "AdditionalNetworking",
-  "version_number": "2.3.5",
+  "version_number": "2.4.0",
   "website_url": "https://github.com/mattymatty97/LTC_AdditionalNetworking",
   "description": "Use more Explicit networking for stuff like selected slot and inventory.",
   "dependencies": [
     "BepInEx-BepInExPack-5.4.2304",
-    "mattymatty-MonkeyInjectionLibrary-1.0.0"
+    "mattymatty-MonkeyInjectionLibrary-1.0.1"
   ]
 }
