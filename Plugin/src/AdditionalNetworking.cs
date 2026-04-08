@@ -73,10 +73,6 @@ internal class AdditionalNetworking : BaseUnityPlugin
             Inventory.InventoryChange =
                 config.Bind("Inventory", "InventoryChange", true, "broadcast the exact inventory order");
 
-            //Player state
-            PlayerState.Crouching = config.Bind("Player state", "Crouching", true,
-                "sync isCrouching state to allow Host AIs to correctly use the variable");
-
             //Item state
             ItemState.Shotgun = config.Bind("Item state", "Shotgun", true,
                 "use explicit values for ammo/safety instead of toggle states");
@@ -122,8 +118,6 @@ internal class AdditionalNetworking : BaseUnityPlugin
                 LethalConfigProxy.AddConfig(ItemState.Boombox);
                 LethalConfigProxy.AddConfig(ItemState.Shotgun);
 
-                LethalConfigProxy.AddConfig(PlayerState.Crouching);
-
                 LethalConfigProxy.AddConfig(Value.Enabled);
                 LethalConfigProxy.AddConfig(Value.SkipVanillaGrabbablesSync);
                 LethalConfigProxy.AddConfig(Value.IgnoreScanNodes);
@@ -155,12 +149,6 @@ internal class AdditionalNetworking : BaseUnityPlugin
             internal static ConfigEntry<bool> Shotgun;
             internal static ConfigEntry<bool> Boombox;
             internal static ConfigEntry<bool> Animated;
-        }
-
-        //player state
-        internal static class PlayerState
-        {
-            internal static ConfigEntry<bool> Crouching;
         }
 
         //Item value
